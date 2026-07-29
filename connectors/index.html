@@ -134,6 +134,31 @@ nav.scrolled{background:rgba(6,11,23,0.95);box-shadow:0 4px 30px rgba(0,0,0,0.3)
   min-height:100vh;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:120px 20px 80px;
+  overflow:hidden;
+}
+.hero-bg-carousel{
+  position:absolute;top:0;left:0;width:100%;height:100%;z-index:-1;
+  overflow:hidden;
+}
+.hero-bg-carousel .bg-slide{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  opacity:0;transition:opacity 1.2s ease-in-out;
+}
+.hero-bg-carousel .bg-slide.active{
+  opacity:1;
+}
+.hero-bg-carousel .bg-slide svg{
+  width:100%;height:100%;object-fit:cover;
+}
+/* Dark overlay on top of carousel */
+.hero::after{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+  background:linear-gradient(135deg,rgba(6,11,23,0.92) 30%,rgba(6,11,23,0.85) 50%,rgba(6,11,23,0.92) 70%);
+  z-index:-1;
+}
+.hero .hero-content{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;
 }
 .hero-badge{
   display:inline-flex;align-items:center;gap:6px;
@@ -520,7 +545,177 @@ footer{
 <!-- ============================================================
      HERO
      ============================================================ -->
-<section class="hero">
+<section class="hero" id="heroSection">
+  <div class="hero-bg-carousel" id="heroBgCarousel">
+    <div class="bg-slide active">
+      <svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <rect width="1920" height="1080" fill="#060b17"/>
+        <!-- Match cards scattered -->
+        <rect x="60" y="100" width="380" height="240" rx="12" fill="rgba(255,255,255,0.03)" stroke="rgba(0,180,255,0.08)" stroke-width="1"/>
+        <text x="80" y="140" font-family="monospace" font-size="16" fill="#5a7a9a">&#9917; UEFA Champions League</text>
+        <text x="80" y="185" font-family="monospace" font-size="20" font-weight="700" fill="#e0e6f0">Real Madrid</text>
+        <text x="80" y="220" font-family="monospace" font-size="20" font-weight="700" fill="#e0e6f0">Manchester City</text>
+        <text x="320" y="205" font-family="monospace" font-size="34" font-weight="800" fill="#ffd740">2 - 1</text>
+        <rect x="80" y="250" width="70" height="32" rx="6" fill="rgba(255,82,82,0.15)"/>
+        <text x="92" y="270" font-family="monospace" font-size="13" font-weight="700" fill="#ff5252">LIVE</text>
+        <text x="160" y="270" font-family="monospace" font-size="13" fill="#5a7a9a">67'</text>
+        <rect x="220" y="250" width="60" height="32" rx="6" fill="rgba(0,230,118,0.1)"/>
+        <text x="237" y="270" font-family="monospace" font-size="13" fill="#00e676">1.45</text>
+        <rect x="290" y="250" width="60" height="32" rx="6" fill="rgba(255,255,255,0.04)"/>
+        <text x="307" y="270" font-family="monospace" font-size="13" fill="#6a8ab6">4.50</text>
+        <rect x="360" y="250" width="60" height="32" rx="6" fill="rgba(0,230,118,0.1)"/>
+        <text x="377" y="270" font-family="monospace" font-size="13" fill="#00e676">3.20</text>
+        <!-- Card 2 -->
+        <rect x="1480" y="200" width="380" height="220" rx="12" fill="rgba(255,255,255,0.03)" stroke="rgba(0,180,255,0.06)" stroke-width="1"/>
+        <text x="1500" y="240" font-family="monospace" font-size="16" fill="#5a7a9a">&#127936; NBA</text>
+        <text x="1500" y="275" font-family="monospace" font-size="20" font-weight="700" fill="#e0e6f0">LA Lakers</text>
+        <text x="1500" y="310" font-family="monospace" font-size="20" font-weight="700" fill="#e0e6f0">Boston Celtics</text>
+        <rect x="1500" y="340" width="60" height="32" rx="6" fill="rgba(0,180,255,0.1)"/>
+        <text x="1517" y="360" font-family="monospace" font-size="13" fill="#4fc3f7">1.85</text>
+        <rect x="1570" y="340" width="60" height="32" rx="6" fill="rgba(0,180,255,0.1)"/>
+        <text x="1587" y="360" font-family="monospace" font-size="13" fill="#4fc3f7">2.10</text>
+        <!-- Stats chart bottom left -->
+        <rect x="80" y="700" width="300" height="180" rx="10" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <text x="100" y="730" font-family="monospace" font-size="14" fill="#00b4ff" font-weight="700">&#128200; Activit&eacute; cotes</text>
+        <rect x="100" y="780" width="30" height="-50" rx="4" fill="#00b4ff" opacity="0.5"/>
+        <rect x="145" y="760" width="30" height="-70" rx="4" fill="#00b4ff" opacity="0.6"/>
+        <rect x="190" y="740" width="30" height="-90" rx="4" fill="#00b4ff" opacity="0.7"/>
+        <rect x="235" y="720" width="30" height="-110" rx="4" fill="#00b4ff" opacity="0.8"/>
+        <rect x="280" y="750" width="30" height="-80" rx="4" fill="#00b4ff" opacity="0.65"/>
+        <rect x="325" y="770" width="30" height="-60" rx="4" fill="#00b4ff" opacity="0.55"/>
+        <!-- Globe visualization right -->
+        <rect x="1500" y="650" width="340" height="240" rx="10" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <text x="1520" y="680" font-family="monospace" font-size="14" fill="#00e676" font-weight="700">&#127760; Couverture</text>
+        <text x="1520" y="720" font-family="monospace" font-size="12" fill="#5a7a9a">&#9679; Europe 45%</text>
+        <text x="1520" y="745" font-family="monospace" font-size="12" fill="#5a7a9a">&#9679; Am&eacute;riques 25%</text>
+        <text x="1520" y="770" font-family="monospace" font-size="12" fill="#5a7a9a">&#9679; Afrique 15%</text>
+        <text x="1520" y="795" font-family="monospace" font-size="12" fill="#5a7a9a">&#9679; Asie 10%</text>
+        <text x="1520" y="820" font-family="monospace" font-size="12" fill="#5a7a9a">&#9679; Oc&eacute;anie 5%</text>
+      </svg>
+    </div>
+    <div class="bg-slide">
+      <svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <rect width="1920" height="1080" fill="#060b17"/>
+        <!-- Live matches list style -->
+        <rect x="100" y="80" width="520" height="44" rx="8" fill="rgba(255,82,82,0.04)" stroke="rgba(255,82,82,0.1)" stroke-width="1"/>
+        <text x="120" y="106" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Real Madrid</text>
+        <text x="300" y="106" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Manchester City</text>
+        <text x="490" y="106" font-family="monospace" font-size="18" font-weight="800" fill="#ffd740">2-1</text>
+        <rect x="540" y="86" width="55" height="22" rx="4" fill="rgba(255,82,82,0.15)"/>
+        <text x="548" y="100" font-family="monospace" font-size="11" font-weight="700" fill="#ff5252">LIVE</text>
+        
+        <rect x="100" y="132" width="520" height="44" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <text x="120" y="158" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Barcelona</text>
+        <text x="300" y="158" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">PSG</text>
+        <text x="490" y="158" font-family="monospace" font-size="18" font-weight="800" fill="#ffd740">1-0</text>
+        <rect x="540" y="138" width="55" height="22" rx="4" fill="rgba(255,82,82,0.15)"/>
+        <text x="548" y="152" font-family="monospace" font-size="11" font-weight="700" fill="#ff5252">LIVE</text>
+        
+        <rect x="100" y="184" width="520" height="44" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <text x="120" y="210" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Inter Milan</text>
+        <text x="300" y="210" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Bayern Munich</text>
+        <text x="490" y="210" font-family="monospace" font-size="18" font-weight="800" fill="#ffd740">3-2</text>
+        <rect x="540" y="190" width="55" height="22" rx="4" fill="rgba(255,82,82,0.15)"/>
+        <text x="548" y="204" font-family="monospace" font-size="11" font-weight="700" fill="#ff5252">LIVE</text>
+        
+        <rect x="100" y="236" width="520" height="44" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <text x="120" y="262" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">LA Lakers</text>
+        <text x="300" y="262" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Boston Celtics</text>
+        <text x="490" y="262" font-family="monospace" font-size="14" fill="#6a8ab6">22:00</text>
+        
+        <rect x="100" y="288" width="520" height="44" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <text x="120" y="314" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Kansas City</text>
+        <text x="300" y="314" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">San Francisco</text>
+        <text x="490" y="314" font-family="monospace" font-size="14" fill="#6a8ab6">00:30</text>
+        
+        <!-- Right side: odds ticker -->
+        <rect x="1300" y="200" width="520" height="44" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <text x="1320" y="226" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Real Madrid</text>
+        <text x="1520" y="226" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Man City</text>
+        <rect x="1710" y="210" width="40" height="22" rx="4" fill="rgba(0,230,118,0.1)"/>
+        <text x="1718" y="224" font-family="monospace" font-size="10" fill="#00e676">1.45</text>
+        <rect x="1755" y="210" width="40" height="22" rx="4" fill="rgba(255,255,255,0.04)"/>
+        <text x="1763" y="224" font-family="monospace" font-size="10" fill="#6a8ab6">4.50</text>
+        
+        <rect x="1300" y="252" width="520" height="44" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <text x="1320" y="278" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Barcelona</text>
+        <text x="1520" y="278" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">PSG</text>
+        <rect x="1710" y="262" width="40" height="22" rx="4" fill="rgba(0,180,255,0.1)"/>
+        <text x="1718" y="276" font-family="monospace" font-size="10" fill="#4fc3f7">2.10</text>
+        <rect x="1755" y="262" width="40" height="22" rx="4" fill="rgba(0,230,118,0.1)"/>
+        <text x="1763" y="276" font-family="monospace" font-size="10" fill="#00e676">3.40</text>
+        
+        <rect x="1300" y="304" width="520" height="44" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <text x="1320" y="330" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Inter Milan</text>
+        <text x="1520" y="330" font-family="monospace" font-size="15" font-weight="700" fill="#e0e6f0">Bayern</text>
+        <rect x="1710" y="314" width="40" height="22" rx="4" fill="rgba(255,255,255,0.04)"/>
+        <text x="1718" y="328" font-family="monospace" font-size="10" fill="#6a8ab6">3.80</text>
+        <rect x="1755" y="314" width="40" height="22" rx="4" fill="rgba(0,180,255,0.1)"/>
+        <text x="1763" y="328" font-family="monospace" font-size="10" fill="#4fc3f7">1.35</text>
+      </svg>
+    </div>
+    <div class="bg-slide">
+      <svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <rect width="1920" height="1080" fill="#060b17"/>
+        <!-- Code blocks scattered -->
+        <rect x="80" y="150" width="500" height="340" rx="12" fill="#0d1117" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <rect x="80" y="150" width="500" height="40" rx="12" fill="#161b22"/>
+        <rect x="80" y="174" width="500" height="16" fill="#161b22"/>
+        <circle cx="106" cy="170" r="7" fill="#ff5252"/>
+        <circle cx="130" cy="170" r="7" fill="#ffd740"/>
+        <circle cx="154" cy="170" r="7" fill="#00e676"/>
+        <text x="178" y="175" font-family="monospace" font-size="13" fill="#5a7a9a">api-integration.js</text>
+        <text x="106" y="215" font-family="monospace" font-size="14" fill="#8ab4d6">const</text>
+        <text x="170" y="215" font-family="monospace" font-size="14" fill="#ffd740">ws</text>
+        <text x="200" y="215" font-family="monospace" font-size="14" fill="#5a7a9a">=</text>
+        <text x="220" y="215" font-family="monospace" font-size="14" fill="#c792ea">new</text>
+        <text x="270" y="215" font-family="monospace" font-size="14" fill="#82aaff">WebSocket</text>
+        <text x="370" y="215" font-family="monospace" font-size="14" fill="#89ddff">(</text>
+        <text x="385" y="215" font-family="monospace" font-size="14" fill="#c3e88d">"ws://185.182.9.199:3000/ws?key=***"</text>
+        <text x="106" y="245" font-family="monospace" font-size="14" fill="#5a7a9a">;</text>
+        <text x="106" y="275" font-family="monospace" font-size="14" fill="#8ab4d6">ws.on</text>
+        <text x="155" y="275" font-family="monospace" font-size="14" fill="#ffd740">message</text>
+        <text x="240" y="275" font-family="monospace" font-size="14" fill="#5a7a9a">=</text>
+        <text x="260" y="275" font-family="monospace" font-size="14" fill="#89ddff">(</text>
+        <text x="270" y="275" font-family="monospace" font-size="14" fill="#eeffff">e</text>
+        <text x="285" y="275" font-family="monospace" font-size="14" fill="#89ddff">)</text>
+        <text x="300" y="275" font-family="monospace" font-size="14" fill="#c792ea">=&gt;</text>
+        <text x="330" y="275" font-family="monospace" font-size="14" fill="#89ddff">{</text>
+        <text x="126" y="305" font-family="monospace" font-size="14" fill="#8ab4d6">const</text>
+        <text x="180" y="305" font-family="monospace" font-size="14" fill="#eeffff">data</text>
+        <text x="220" y="305" font-family="monospace" font-size="14" fill="#5a7a9a">=</text>
+        <text x="240" y="305" font-family="monospace" font-size="14" fill="#82aaff">JSON.parse</text>
+        <text x="340" y="305" font-family="monospace" font-size="14" fill="#89ddff">(</text>
+        <text x="355" y="305" font-family="monospace" font-size="14" fill="#eeffff">e.data</text>
+        <text x="390" y="305" font-family="monospace" font-size="14" fill="#5a7a9a">;</text>
+        <text x="126" y="335" font-family="monospace" font-size="14" fill="#82aaff">console.log</text>
+        <text x="235" y="335" font-family="monospace" font-size="14" fill="#89ddff">(</text>
+        <text x="250" y="335" font-family="monospace" font-size="14" fill="#eeffff">data.matches</text>
+        <text x="340" y="335" font-family="monospace" font-size="14" fill="#89ddff">)</text>
+        <text x="106" y="365" font-family="monospace" font-size="14" fill="#89ddff">}</text>
+        <!-- Terminal output -->
+        <rect x="80" y="380" width="500" height="90" rx="0" fill="#090c15"/>
+        <rect x="80" y="470" width="500" height="20" rx="0" fill="#090c15"/>
+        <text x="106" y="410" font-family="monospace" font-size="13" fill="#5a7a9a">$ node api-integration.js</text>
+        <text x="106" y="436" font-family="monospace" font-size="13" fill="#00e676">&gt; 465 matches loaded</text>
+        <text x="106" y="456" font-family="monospace" font-size="13" fill="#00e676">&gt; WebSocket connected</text>
+        <!-- Right side: globe + metrics -->
+        <rect x="1350" y="200" width="490" height="300" rx="14" fill="rgba(255,255,255,0.02)" stroke="rgba(0,180,255,0.06)" stroke-width="1"/>
+        <text x="1370" y="240" font-family="monospace" font-size="18" font-weight="700" fill="#00b4ff">SporTrend Metrics</text>
+        <text x="1370" y="280" font-family="monospace" font-size="48" font-weight="800" fill="#e0e6f0">465</text>
+        <text x="1370" y="305" font-family="monospace" font-size="13" fill="#5a7a9a">Matchs en temps r&eacute;el</text>
+        <text x="1370" y="340" font-family="monospace" font-size="14" fill="#5a7a9a">&#9679; Latence moyenne :</text>
+        <text x="1550" y="340" font-family="monospace" font-size="14" fill="#00e676" font-weight="700">38ms</text>
+        <text x="1370" y="365" font-family="monospace" font-size="14" fill="#5a7a9a">&#9679; Sources actives :</text>
+        <text x="1550" y="365" font-family="monospace" font-size="14" fill="#4fc3f7" font-weight="700">6/6</text>
+        <text x="1370" y="390" font-family="monospace" font-size="14" fill="#5a7a9a">&#9679; Uptime :</text>
+        <text x="1500" y="390" font-family="monospace" font-size="14" fill="#00e676" font-weight="700">99.9%</text>
+        <text x="1370" y="430" font-family="monospace" font-size="14" fill="#5a7a9a">&#9679; March&eacute;s disponibles :</text>
+        <text x="1610" y="430" font-family="monospace" font-size="14" fill="#ffd740" font-weight="700">120+</text>
+      </svg>
+    </div>
+  </div>
+  <div class="hero-content">
   <div class="hero-badge">
     <span class="dot"></span>
     API B2B en ligne &mdash; 465+ matchs disponibles
@@ -552,334 +747,8 @@ footer{
     <div class="mouse"></div>
     <span>D&eacute;couvrir</span>
   </div>
-</section>
-
-<!-- ============================================================
-     SHOWCASE IMAGE CAROUSEL
-     ============================================================ -->
-<section id="showcase">
-  <div class="section-label">&#128248; En action</div>
-  <h2 class="section-title">D&eacute;couvrez <span class="highlight">l&rsquo;interface</span></h2>
-  <p class="section-sub">Dashboard temps r&eacute;el, radar live, et API en action.</p>
-  <div class="showcase-wrap">
-    <div class="showcase-slider" id="showcaseSlider">
-      <!-- Slide 1: Dashboard -->
-      <div class="showcase-slide">
-        <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" style="background:#080c18">
-          <rect width="1000" height="560" fill="#0a1225" rx="12"/>
-          <!-- Header bar -->
-          <rect x="0" y="0" width="1000" height="48" fill="#0d1730" rx="12"/>
-          <rect x="0" y="24" width="1000" height="24" fill="#0d1730"/>
-          <text x="20" y="30" font-family="monospace" font-size="13" font-weight="700" fill="#00b4ff">SporTrend &bull; Dashboard</text>
-          <rect x="850" y="12" width="120" height="24" rx="4" fill="rgba(0,180,255,0.12)"/>
-          <text x="870" y="28" font-family="monospace" font-size="10" fill="#00b4ff">demo_key_001</text>
-          <!-- Stats bar -->
-          <rect x="16" y="62" width="968" height="44" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-          <text x="36" y="82" font-family="monospace" font-size="18" font-weight="800" fill="#00d4ff">465</text>
-          <text x="60" y="82" font-family="monospace" font-size="11" fill="#5a7a9a">matchs en direct</text>
-          <text x="230" y="82" font-family="monospace" font-size="18" font-weight="800" fill="#ffd740">6</text>
-          <text x="254" y="82" font-family="monospace" font-size="11" fill="#5a7a9a">sources</text>
-          <text x="370" y="82" font-family="monospace" font-size="18" font-weight="800" fill="#4fc3f7">9</text>
-          <text x="394" y="82" font-family="monospace" font-size="11" fill="#5a7a9a">sports</text>
-          <text x="510" y="82" font-family="monospace" font-size="18" font-weight="800" fill="#00e676">120+</text>
-          <text x="548" y="82" font-family="monospace" font-size="11" fill="#5a7a9a">march&eacute;s</text>
-          <!-- Match cards -->
-          <rect x="16" y="118" width="314" height="128" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(0,180,255,0.1)" stroke-width="1"/>
-          <text x="30" y="140" font-family="monospace" font-size="10" fill="#5a7a9a">&#9917; UEFA Champions League</text>
-          <text x="30" y="168" font-family="monospace" font-size="14" font-weight="700" fill="#e0e6f0">Real Madrid</text>
-          <text x="30" y="192" font-family="monospace" font-size="14" font-weight="700" fill="#e0e6f0">Manchester City</text>
-          <text x="190" y="180" font-family="monospace" font-size="20" font-weight="800" fill="#ffd740">2 - 1</text>
-          <rect x="30" y="210" width="50" height="22" rx="4" fill="rgba(255,82,82,0.15)"/>
-          <text x="37" y="224" font-family="monospace" font-size="10" font-weight="700" fill="#ff5252">LIVE 67&#39;</text>
-          <rect x="90" y="210" width="50" height="22" rx="4" fill="rgba(0,230,118,0.1)"/>
-          <text x="102" y="224" font-family="monospace" font-size="10" fill="#00e676">1.45</text>
-          <rect x="145" y="210" width="50" height="22" rx="4" fill="rgba(255,255,255,0.04)"/>
-          <text x="157" y="224" font-family="monospace" font-size="10" fill="#6a8ab6">4.50</text>
-          <rect x="200" y="210" width="50" height="22" rx="4" fill="rgba(0,230,118,0.1)"/>
-          <text x="212" y="224" font-family="monospace" font-size="10" fill="#00e676">3.20</text>
-          <!-- Card 2 -->
-          <rect x="343" y="118" width="314" height="128" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-          <text x="357" y="140" font-family="monospace" font-size="10" fill="#5a7a9a">&#127936; NBA</text>
-          <text x="357" y="168" font-family="monospace" font-size="14" font-weight="700" fill="#e0e6f0">LA Lakers</text>
-          <text x="357" y="192" font-family="monospace" font-size="14" font-weight="700" fill="#e0e6f0">Boston Celtics</text>
-          <text x="535" y="180" font-family="monospace" font-size="16" font-weight="700" fill="#6a8ab6">22:00</text>
-          <rect x="357" y="210" width="50" height="22" rx="4" fill="rgba(0,180,255,0.1)"/>
-          <text x="364" y="224" font-family="monospace" font-size="10" fill="#4fc3f7">1.85</text>
-          <rect x="412" y="210" width="50" height="22" rx="4" fill="rgba(0,180,255,0.1)"/>
-          <text x="419" y="224" font-family="monospace" font-size="10" fill="#4fc3f7">2.10</text>
-          <!-- Card 3 -->
-          <rect x="670" y="118" width="314" height="128" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-          <text x="684" y="140" font-family="monospace" font-size="10" fill="#5a7a9a">&#127944; NFL</text>
-          <text x="684" y="168" font-family="monospace" font-size="14" font-weight="700" fill="#e0e6f0">Kansas City</text>
-          <text x="684" y="192" font-family="monospace" font-size="14" font-weight="700" fill="#e0e6f0">San Francisco</text>
-          <text x="865" y="180" font-family="monospace" font-size="16" font-weight="700" fill="#6a8ab6">00:30</text>
-          <rect x="684" y="210" width="50" height="22" rx="4" fill="rgba(0,230,118,0.1)"/>
-          <text x="696" y="224" font-family="monospace" font-size="10" fill="#00e676">2.50</text>
-          <rect x="739" y="210" width="50" height="22" rx="4" fill="rgba(255,255,255,0.04)"/>
-          <text x="751" y="224" font-family="monospace" font-size="10" fill="#6a8ab6">1.55</text>
-          <!-- Bottom row -->
-          <rect x="16" y="260" width="230" height="80" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-          <text x="28" y="282" font-family="monospace" font-size="11" fill="#00b4ff" font-weight="700">&#128268; WebSocket</text>
-          <text x="28" y="300" font-family="monospace" font-size="10" fill="#5a7a9a">Connect&eacute; &bull; Latence 0.3s</text>
-          <text x="28" y="316" font-family="monospace" font-size="10" fill="#5a7a9a">&Eacute;v&eacute;nements: match:update</text>
-          <rect x="262" y="260" width="230" height="80" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-          <text x="274" y="282" font-family="monospace" font-size="11" fill="#ffd740" font-weight="700">&#127942; Sources</text>
-          <text x="274" y="300" font-family="monospace" font-size="10" fill="#5a7a9a">ESPN &bull; 1xBet &bull; Unibet</text>
-          <text x="274" y="316" font-family="monospace" font-size="10" fill="#5a7a9a">Flashscore &bull; BetExplorer</text>
-          <rect x="508" y="260" width="230" height="80" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-          <text x="520" y="282" font-family="monospace" font-size="11" fill="#00e676" font-weight="700">&#9889; Performance</text>
-          <text x="520" y="300" font-family="monospace" font-size="10" fill="#5a7a9a">Temps de r&eacute;ponse moyen</text>
-          <text x="520" y="316" font-family="monospace" font-size="10" fill="#5a7a9a">&lt; 50ms &bull; Uptime 99.9%</text>
-          <!-- Timeline sparkline -->
-          <rect x="16" y="356" width="968" height="54" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-          <text x="28" y="374" font-family="monospace" font-size="10" fill="#5a7a9a">Activit&eacute; en temps r&eacute;el</text>
-          <polyline points="28,392 80,370 140,388 200,360 260,376 320,352 380,368 440,340 500,356 560,332 620,348 680,338 740,350 800,330 860,342 920,335 960,340" fill="none" stroke="#00b4ff" stroke-width="2" opacity="0.6"/>
-          <polyline points="28,400 80,390 140,395 200,385 260,392 320,380 380,388 440,375 500,384 560,370 620,380 680,368 740,376 800,362 860,370 920,358 960,365" fill="none" stroke="rgba(0,180,255,0.15)" stroke-width="1"/>
-        </svg>
-        <div class="showcase-overlay">
-          <h3>Dashboard Temps R&eacute;el</h3>
-          <p>Visualisez les matchs, cotes et statistiques en direct.</p>
-        </div>
-      </div>
-      <!-- Slide 2: Live Radar -->
-      <div class="showcase-slide">
-        <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" style="background:#080c18">
-          <rect width="1000" height="560" fill="#0a1225" rx="12"/>
-          <rect x="0" y="0" width="1000" height="48" fill="#0d1730" rx="12"/>
-          <rect x="0" y="24" width="1000" height="24" fill="#0d1730"/>
-          <text x="20" y="30" font-family="monospace" font-size="13" font-weight="700" fill="#00b4ff">SporTrend &bull; Live Radar</text>
-          <rect x="850" y="12" width="120" height="24" rx="4" fill="rgba(0,180,255,0.12)"/>
-          <text x="860" y="28" font-family="monospace" font-size="10" fill="#00b4ff">12 matchs LIVE</text>
-          <!-- Live match entries -->
-          <rect x="16" y="60" width="968" height="52" rx="6" fill="rgba(255,82,82,0.04)" stroke="rgba(255,82,82,0.15)" stroke-width="1"/>
-          <text x="30" y="80" font-family="monospace" font-size="12" font-weight="700" fill="#e0e6f0">Real Madrid</text>
-          <text x="180" y="80" font-family="monospace" font-size="12" font-weight="700" fill="#e0e6f0">Manchester City</text>
-          <text x="370" y="80" font-family="monospace" font-size="18" font-weight="800" fill="#ffd740">2 - 1</text>
-          <rect x="440" y="66" width="55" height="22" rx="4" fill="rgba(255,82,82,0.15)"/>
-          <text x="448" y="80" font-family="monospace" font-size="10" font-weight="700" fill="#ff5252">LIVE</text>
-          <text x="500" y="80" font-family="monospace" font-size="10" fill="#5a7a9a">67&#39;</text>
-          <text x="560" y="80" font-family="monospace" font-size="10" fill="#5a7a9a">UEFA Champions League</text>
-          <rect x="780" y="66" width="40" height="22" rx="4" fill="rgba(0,230,118,0.1)"/>
-          <text x="788" y="80" font-family="monospace" font-size="10" fill="#00e676">1.45</text>
-          <rect x="825" y="66" width="40" height="22" rx="4" fill="rgba(255,255,255,0.04)"/>
-          <text x="833" y="80" font-family="monospace" font-size="10" fill="#6a8ab6">4.50</text>
-          <rect x="870" y="66" width="40" height="22" rx="4" fill="rgba(0,230,118,0.1)"/>
-          <text x="878" y="80" font-family="monospace" font-size="10" fill="#00e676">3.20</text>
-          <!-- Divider -->
-          <line x1="430" y1="66" x2="430" y2="112" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <line x1="550" y1="66" x2="550" y2="112" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <!-- Match 2 -->
-          <rect x="16" y="120" width="968" height="44" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-          <text x="30" y="145" font-family="monospace" font-size="12" font-weight="700" fill="#e0e6f0">Barcelona</text>
-          <text x="180" y="145" font-family="monospace" font-size="12" font-weight="700" fill="#e0e6f0">PSG</text>
-          <text x="370" y="145" font-family="monospace" font-size="18" font-weight="800" fill="#ffd740">1 - 0</text>
-          <rect x="440" y="108" width="55" height="22" rx="4" fill="rgba(255,82,82,0.15)"/>
-          <text x="448" y="122" font-family="monospace" font-size="10" font-weight="700" fill="#ff5252">LIVE</text>
-          <text x="500" y="145" font-family="monospace" font-size="10" fill="#5a7a9a">32&#39;</text>
-          <text x="560" y="145" font-family="monospace" font-size="10" fill="#5a7a9a">UEFA Champions League</text>
-          <rect x="780" y="131" width="40" height="22" rx="4" fill="rgba(0,180,255,0.1)"/>
-          <text x="788" y="145" font-family="monospace" font-size="10" fill="#4fc3f7">2.10</text>
-          <rect x="825" y="131" width="40" height="22" rx="4" fill="rgba(0,230,118,0.1)"/>
-          <text x="833" y="145" font-family="monospace" font-size="10" fill="#00e676">3.40</text>
-          <rect x="870" y="131" width="40" height="22" rx="4" fill="rgba(255,255,255,0.04)"/>
-          <text x="878" y="145" font-family="monospace" font-size="10" fill="#6a8ab6">3.80</text>
-          <line x1="430" y1="120" x2="430" y2="164" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <line x1="550" y1="120" x2="550" y2="164" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <!-- Match 3 -->
-          <rect x="16" y="172" width="968" height="44" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-          <text x="30" y="197" font-family="monospace" font-size="12" font-weight="700" fill="#e0e6f0">LA Lakers</text>
-          <text x="180" y="197" font-family="monospace" font-size="12" font-weight="700" fill="#e0e6f0">Boston Celtics</text>
-          <text x="370" y="197" font-family="monospace" font-size="18" font-weight="800" fill="#6a8ab6">-</text>
-          <text x="440" y="197" font-family="monospace" font-size="10" fill="#5a7a9a">22:00</text>
-          <text x="500" y="197" font-family="monospace" font-size="10" fill="#5a7a9a">&Agrave; venir</text>
-          <text x="560" y="197" font-family="monospace" font-size="10" fill="#5a7a9a">NBA</text>
-          <rect x="780" y="183" width="40" height="22" rx="4" fill="rgba(0,180,255,0.1)"/>
-          <text x="788" y="197" font-family="monospace" font-size="10" fill="#4fc3f7">1.85</text>
-          <rect x="825" y="183" width="40" height="22" rx="4" fill="rgba(0,180,255,0.1)"/>
-          <text x="833" y="197" font-family="monospace" font-size="10" fill="#4fc3f7">2.10</text>
-          <line x1="430" y1="172" x2="430" y2="216" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <line x1="550" y1="172" x2="550" y2="216" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <!-- More matches... -->
-          <rect x="16" y="224" width="968" height="44" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-          <text x="30" y="249" font-family="monospace" font-size="12" font-weight="700" fill="#e0e6f0">Kansas City</text>
-          <text x="180" y="249" font-family="monospace" font-size="12" font-weight="700" fill="#e0e6f0">San Francisco</text>
-          <text x="370" y="249" font-family="monospace" font-size="18" font-weight="800" fill="#6a8ab6">-</text>
-          <text x="440" y="249" font-family="monospace" font-size="10" fill="#5a7a9a">00:30</text>
-          <text x="500" y="249" font-family="monospace" font-size="10" fill="#5a7a9a">&Agrave; venir</text>
-          <text x="560" y="249" font-family="monospace" font-size="10" fill="#5a7a9a">NFL</text>
-          <rect x="780" y="235" width="40" height="22" rx="4" fill="rgba(0,230,118,0.1)"/>
-          <text x="788" y="249" font-family="monospace" font-size="10" fill="#00e676">2.50</text>
-          <rect x="825" y="235" width="40" height="22" rx="4" fill="rgba(255,255,255,0.04)"/>
-          <text x="833" y="249" font-family="monospace" font-size="10" fill="#6a8ab6">1.55</text>
-          <line x1="430" y1="224" x2="430" y2="268" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <line x1="550" y1="224" x2="550" y2="268" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <!-- Stats chart area -->
-          <rect x="16" y="280" width="968" height="160" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-          <text x="28" y="300" font-family="monospace" font-size="11" fill="#00b4ff" font-weight="700">&#128200; Activit&eacute; des cotes (30 derni&egrave;res minutes)</text>
-          <!-- Bars -->
-          <rect x="30" y="400" width="24" height="-60" rx="3" fill="#00b4ff" opacity="0.6"/>
-          <rect x="60" y="420" width="24" height="-40" rx="3" fill="#00b4ff" opacity="0.5"/>
-          <rect x="90" y="380" width="24" height="-80" rx="3" fill="#00b4ff" opacity="0.7"/>
-          <rect x="120" y="350" width="24" height="-110" rx="3" fill="#00b4ff" opacity="0.8"/>
-          <rect x="150" y="370" width="24" height="-90" rx="3" fill="#00b4ff" opacity="0.65"/>
-          <rect x="180" y="390" width="24" height="-70" rx="3" fill="#00b4ff" opacity="0.55"/>
-          <rect x="210" y="340" width="24" height="-120" rx="3" fill="#00b4ff" opacity="0.85"/>
-          <rect x="240" y="360" width="24" height="-100" rx="3" fill="#00b4ff" opacity="0.75"/>
-          <rect x="270" y="330" width="24" height="-130" rx="3" fill="#00b4ff" opacity="0.9"/>
-          <rect x="300" y="345" width="24" height="-115" rx="3" fill="#00b4ff" opacity="0.8"/>
-          <rect x="330" y="355" width="24" height="-105" rx="3" fill="#00b4ff" opacity="0.7"/>
-          <rect x="360" y="325" width="24" height="-135" rx="3" fill="#00b4ff" opacity="0.95"/>
-          <text x="30" y="425" font-family="monospace" font-size="9" fill="#3a5a7a">12:00</text>
-          <text x="90" y="425" font-family="monospace" font-size="9" fill="#3a5a7a">12:05</text>
-          <text x="150" y="425" font-family="monospace" font-size="9" fill="#3a5a7a">12:10</text>
-          <text x="210" y="425" font-family="monospace" font-size="9" fill="#3a5a7a">12:15</text>
-          <text x="270" y="425" font-family="monospace" font-size="9" fill="#3a5a7a">12:20</text>
-          <text x="330" y="425" font-family="monospace" font-size="9" fill="#3a5a7a">12:25</text>
-        </svg>
-        <div class="showcase-overlay">
-          <h3>Live Radar</h3>
-          <p>Suivez les matchs en direct avec les cotes qui bougent en temps r&eacute;el.</p>
-        </div>
-      </div>
-      <!-- Slide 3: API Code -->
-      <div class="showcase-slide">
-        <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" style="background:#080c18">
-          <rect width="1000" height="560" fill="#0a1225" rx="12"/>
-          <rect x="0" y="0" width="1000" height="48" fill="#0d1730" rx="12"/>
-          <rect x="0" y="24" width="1000" height="24" fill="#0d1730"/>
-          <text x="20" y="30" font-family="monospace" font-size="13" font-weight="700" fill="#00b4ff">SporTrend &bull; API Playground</text>
-          <!-- Code block -->
-          <rect x="16" y="60" width="520" height="170" rx="8" fill="#0d1117" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <rect x="16" y="60" width="520" height="32" rx="8" fill="#161b22"/>
-          <rect x="16" y="76" width="520" height="16" fill="#161b22"/>
-          <circle cx="36" cy="76" r="6" fill="#ff5252"/>
-          <circle cx="56" cy="76" r="6" fill="#ffd740"/>
-          <circle cx="76" cy="76" r="6" fill="#00e676"/>
-          <text x="90" y="80" font-family="monospace" font-size="10" fill="#5a7a9a">app.js</text>
-          <text x="30" y="110" font-family="monospace" font-size="11" fill="#8ab4d6">const</text>
-          <text x="80" y="110" font-family="monospace" font-size="11" fill="#ffd740">ws</text>
-          <text x="100" y="110" font-family="monospace" font-size="11" fill="#5a7a9a">=</text>
-          <text x="115" y="110" font-family="monospace" font-size="11" fill="#c792ea">new</text>
-          <text x="155" y="110" font-family="monospace" font-size="11" fill="#82aaff">WebSocket</text>
-          <text x="230" y="110" font-family="monospace" font-size="11" fill="#89ddff">(</text>
-          <text x="240" y="110" font-family="monospace" font-size="11" fill="#c3e88d">"ws://185.182.9.199:3000/ws?key=***"</text>
-          <text x="470" y="110" font-family="monospace" font-size="11" fill="#89ddff">)</text>
-          <text x="30" y="132" font-family="monospace" font-size="11" fill="#5a7a9a">;</text>
-          <text x="30" y="154" font-family="monospace" font-size="11" fill="#8ab4d6">ws.on</text>
-          <text x="70" y="154" font-family="monospace" font-size="11" fill="#ffd740">message</text>
-          <text x="130" y="154" font-family="monospace" font-size="11" fill="#5a7a9a">=</text>
-          <text x="145" y="154" font-family="monospace" font-size="11" fill="#89ddff">(</text>
-          <text x="155" y="154" font-family="monospace" font-size="11" fill="#eeffff">e</text>
-          <text x="165" y="154" font-family="monospace" font-size="11" fill="#89ddff">)</text>
-          <text x="175" y="154" font-family="monospace" font-size="11" fill="#c792ea">=&gt;</text>
->
-          <text x="200" y="154" font-family="monospace" font-size="11" fill="#89ddff">{</text>
-          <text x="50" y="176" font-family="monospace" font-size="11" fill="#8ab4d6">const</text>
-          <text x="95" y="176" font-family="monospace" font-size="11" fill="#eeffff">data</text>
-          <text x="120" y="176" font-family="monospace" font-size="11" fill="#5a7a9a">=</text>
-          <text x="135" y="176" font-family="monospace" font-size="11" fill="#82aaff">JSON.parse</text>
-          <text x="215" y="176" font-family="monospace" font-size="11" fill="#89ddff">(</text>
-          <text x="225" y="176" font-family="monospace" font-size="11" fill="#eeffff">e.data</text>
-          <text x="270" y="176" font-family="monospace" font-size="11" fill="#89ddff">)</text>
-          <text x="280" y="176" font-family="monospace" font-size="11" fill="#5a7a9a">;</text>
-          <text x="50" y="198" font-family="monospace" font-size="11" fill="#82aaff">console.log</text>
-          <text x="145" y="198" font-family="monospace" font-size="11" fill="#89ddff">(</text>
-          <text x="155" y="198" font-family="monospace" font-size="11" fill="#eeffff">data</text>
-          <text x="185" y="198" font-family="monospace" font-size="11" fill="#89ddff">)</text>
-          <text x="195" y="198" font-family="monospace" font-size="11" fill="#5a7a9a">;</text>
-          <text x="30" y="220" font-family="monospace" font-size="11" fill="#89ddff">}</text>
-          <!-- Response preview -->
-          <rect x="16" y="244" width="520" height="130" rx="8" fill="#0d1117" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <text x="30" y="266" font-family="monospace" font-size="10" fill="#5a7a9a">// R&eacute;ponse WebSocket</text>
-          <text x="30" y="284" font-family="monospace" font-size="10" fill="#89ddff">{</text>
-          <text x="46" y="300" font-family="monospace" font-size="10" fill="#c792ea">"type"</text>
-          <text x="90" y="300" font-family="monospace" font-size="10" fill="#5a7a9a">:</text>
-          <text x="100" y="300" font-family="monospace" font-size="10" fill="#c3e88d">"match:update"</text>
-          <text x="230" y="300" font-family="monospace" font-size="10" fill="#5a7a9a">,</text>
-          <text x="46" y="316" font-family="monospace" font-size="10" fill="#c792ea">"matches"</text>
-          <text x="110" y="316" font-family="monospace" font-size="10" fill="#5a7a9a">:</text>
-          <text x="120" y="316" font-family="monospace" font-size="10" fill="#89ddff">[</text>
-          <text x="132" y="316" font-family="monospace" font-size="10" fill="#89ddff">{...</text>
-          <text x="160" y="316" font-family="monospace" font-size="10" fill="#89ddff">}</text>
-          <text x="170" y="316" font-family="monospace" font-size="10" fill="#5a7a9a">]</text>
-          <text x="30" y="332" font-family="monospace" font-size="10" fill="#89ddff">}</text>
-          <!-- API response panel right side -->
-          <rect x="552" y="60" width="432" height="314" rx="8" fill="#0d1117" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <rect x="552" y="60" width="432" height="32" rx="8" fill="#161b22"/>
-          <rect x="552" y="76" width="432" height="16" fill="#161b22"/>
-          <text x="568" y="80" font-family="monospace" font-size="10" fill="#5a7a9a">R&eacute;ponse API &bull; /api/v1/matches</text>
-          <text x="568" y="110" font-family="monospace" font-size="10" fill="#89ddff">{</text>
-          <text x="584" y="126" font-family="monospace" font-size="10" fill="#c792ea">"success"</text>
-          <text x="640" y="126" font-family="monospace" font-size="10" fill="#5a7a9a">:</text>
-          <text x="650" y="126" font-family="monospace" font-size="10" fill="#c792ea">true</text>
-          <text x="584" y="142" font-family="monospace" font-size="10" fill="#c792ea">"count"</text>
-          <text x="630" y="142" font-family="monospace" font-size="10" fill="#5a7a9a">:</text>
-          <text x="640" y="142" font-family="monospace" font-size="10" fill="#f78c6c">465</text>
-          <text x="584" y="158" font-family="monospace" font-size="10" fill="#c792ea">"matches"</text>
-          <text x="650" y="158" font-family="monospace" font-size="10" fill="#5a7a9a">:</text>
-          <text x="660" y="158" font-family="monospace" font-size="10" fill="#89ddff">[</text>
-          <text x="584" y="174" font-family="monospace" font-size="10" fill="#89ddff">{</text>
-          <text x="600" y="190" font-family="monospace" font-size="9" fill="#c792ea">"id"</text>
-          <text x="624" y="190" font-family="monospace" font-size="9" fill="#5a7a9a">:</text>
-          <text x="632" y="190" font-family="monospace" font-size="9" fill="#c3e88d">"espn-401879619"</text>
-          <text x="600" y="206" font-family="monospace" font-size="9" fill="#c792ea">"homeTeam"</text>
-          <text x="664" y="206" font-family="monospace" font-size="9" fill="#5a7a9a">:</text>
-          <text x="672" y="206" font-family="monospace" font-size="9" fill="#c3e88d">"Real Madrid"</text>
-          <text x="600" y="222" font-family="monospace" font-size="9" fill="#c792ea">"awayTeam"</text>
-          <text x="664" y="222" font-family="monospace" font-size="9" fill="#5a7a9a">:</text>
-          <text x="672" y="222" font-family="monospace" font-size="9" fill="#c3e88d">"Manchester City"</text>
-          <text x="600" y="238" font-family="monospace" font-size="9" fill="#c792ea">"score"</text>
-          <text x="648" y="238" font-family="monospace" font-size="9" fill="#5a7a9a">:</text>
-          <text x="656" y="238" font-family="monospace" font-size="9" fill="#89ddff">{</text>
-          <text x="672" y="250" font-family="monospace" font-size="9" fill="#c792ea">"home"</text>
-          <text x="712" y="250" font-family="monospace" font-size="9" fill="#f78c6c">2</text>
-          <text x="720" y="250" font-family="monospace" font-size="9" fill="#c792ea">"away"</text>
-          <text x="756" y="250" font-family="monospace" font-size="9" fill="#f78c6c">1</text>
-          <text x="656" y="262" font-family="monospace" font-size="9" fill="#89ddff">}</text>
-          <text x="584" y="278" font-family="monospace" font-size="9" fill="#5a7a9a">...</text>
-          <text x="584" y="294" font-family="monospace" font-size="10" fill="#89ddff">]</text>
-          <text x="568" y="310" font-family="monospace" font-size="10" fill="#89ddff">}</text>
-          <!-- Bottom: curl example -->
-          <rect x="16" y="390" width="968" height="120" rx="8" fill="#0d1117" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <rect x="16" y="390" width="968" height="32" rx="8" fill="#161b22"/>
-          <rect x="16" y="406" width="968" height="16" fill="#161b22"/>
-          <circle cx="36" cy="406" r="6" fill="#ff5252"/>
-          <circle cx="56" cy="406" r="6" fill="#ffd740"/>
-          <circle cx="76" cy="406" r="6" fill="#00e676"/>
-          <text x="90" y="410" font-family="monospace" font-size="10" fill="#5a7a9a">Terminal</text>
-          <text x="30" y="440" font-family="monospace" font-size="12" fill="#5a7a9a">$</text>
-          <text x="48" y="440" font-family="monospace" font-size="12" fill="#c3e88d">curl</text>
-          <text x="88" y="440" font-family="monospace" font-size="12" fill="#eeffff">-H</text>
-          <text x="112" y="440" font-family="monospace" font-size="12" fill="#c3e88d">"X-API-Key: ***"</text>
-          <text x="268" y="440" font-family="monospace" font-size="12" fill="#eeffff">http://185.182.9.199:3000/api/v1/matches</text>
-          <text x="30" y="466" font-family="monospace" font-size="12" fill="#5a7a9a">$</text>
-          <text x="48" y="466" font-family="monospace" font-size="12" fill="#c3e88d">curl</text>
-          <text x="88" y="466" font-family="monospace" font-size="12" fill="#eeffff">-H</text>
-          <text x="112" y="466" font-family="monospace" font-size="12" fill="#c3e88d">"X-API-Key: ***"</text>
-          <text x="268" y="466" font-family="monospace" font-size="12" fill="#eeffff">http://185.182.9.199:3000/api/v1/health</text>
-          <text x="30" y="492" font-family="monospace" font-size="11" fill="#5a7a9a">// R&eacute;sultat : 465 matchs disponibles en temps r&eacute;el</text>
-        </svg>
-        <div class="showcase-overlay">
-          <h3>API &amp; WebSocket</h3>
-          <p>Int&eacute;gration simple en quelques lignes de code.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="showcase-controls">
-    <button class="showcase-btn" id="showcasePrev">&#8249;</button>
-    <div id="showcaseDots">
-      <button class="showcase-dot active" data-index="0"></button>
-      <button class="showcase-dot" data-index="1"></button>
-      <button class="showcase-dot" data-index="2"></button>
-    </div>
-    <button class="showcase-btn" id="showcaseNext">&#8250;</button>
   </div>
 </section>
-
-<!-- ============================================================
-     CAROUSEL FEATURES
-     ============================================================ -->
 <section id="features">
   <div class="section-label">&#9889; Fonctionnalit&eacute;s</div>
   <h2 class="section-title">Ce que <span class="highlight">SporTrend</span> vous offre</h2>
@@ -1125,22 +994,18 @@ dots.forEach(d=>{
 // Auto-rotate carousel
 setInterval(()=>{goToSlide((currentSlide+1)%totalSlides)},4000);
 
-// --- Showcase Image Carousel ---
+// --- Hero Background Carousel ---
 (function(){
-  const slider=document.getElementById('showcaseSlider');
-  const dots=document.querySelectorAll('#showcaseDots .showcase-dot');
-  if(!slider||!dots.length)return;
+  const slides=document.querySelectorAll('#heroBgCarousel .bg-slide');
+  if(!slides.length)return;
   let current=0;
-  const total=dots.length;
-  function goTo(n){
-    current=n;
-    slider.style.transform='translateX(-'+current*100+'%)';
-    dots.forEach((d,i)=>d.classList.toggle('active',i===current));
+  const total=slides.length;
+  function nextSlide(){
+    slides[current].classList.remove('active');
+    current=(current+1)%total;
+    slides[current].classList.add('active');
   }
-  document.getElementById('showcasePrev').addEventListener('click',()=>goTo((current-1+total)%total));
-  document.getElementById('showcaseNext').addEventListener('click',()=>goTo((current+1)%total));
-  dots.forEach(d=>{d.addEventListener('click',()=>goTo(parseInt(d.dataset.index)));});
-  setInterval(()=>goTo((current+1)%total),5000);
+  setInterval(nextSlide,5000);
 })();
 
 // --- Live matches count ---
