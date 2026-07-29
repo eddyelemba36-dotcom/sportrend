@@ -31,15 +31,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .feat p{font-size:12px;color:#5a7a9a;line-height:1.4}
 .sources{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:15px 0}
 .source{border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;font-size:12px;color:#8096b8}
-.plans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:500px){.plans{grid-template-columns:1fr}}
-.plan{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;text-align:center}
-.plan.pop{background:rgba(0,180,255,0.06);border-color:rgba(0,180,255,0.2)}
-.plan h3{font-size:15px;margin-bottom:4px}
-.plan .price{font-size:24px;font-weight:700;color:#00d4ff;margin:8px 0}
-.plan ul{list-style:none;font-size:12px;color:#6a8ab6;line-height:1.8}
-.plan ul li::before{content:'✓ ';color:#00d4ff}
-.plan .cta-sm{display:inline-block;margin-top:10px;padding:7px 18px;background:linear-gradient(135deg,#00b4ff,#0066cc);color:#fff;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600}
+.plan-card{max-width:500px;margin:0 auto;background:linear-gradient(135deg,rgba(0,180,255,0.08),rgba(0,102,204,0.04));border:1px solid rgba(0,180,255,0.2);border-radius:14px;padding:28px;text-align:center}
+.plan-card .plan-name{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px}
+.plan-card .plan-sub{font-size:13px;color:#5a7a9a;margin-bottom:16px}
+.plan-card .price-big{font-size:36px;font-weight:800;color:#00d4ff}
+.plan-card .price-big span{font-size:14px;color:#5a7a9a;font-weight:400}
+.plan-card .trial-badge{display:inline-block;background:linear-gradient(135deg,#00e676,#00c853);color:#000;padding:4px 16px;border-radius:20px;font-size:13px;font-weight:700;margin:10px 0}
+.plan-card ul{list-style:none;font-size:13px;color:#8096b8;line-height:2.2;text-align:left;max-width:380px;margin:15px auto}
+.plan-card ul li::before{content:'\2713 ';color:#00d4ff;font-weight:700}
+.plan-card ul li.highlight{color:#e0e6f0}
+.plan-card .cta-plan{display:inline-block;padding:12px 40px;background:linear-gradient(135deg,#00b4ff,#0066cc);color:#fff;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;transition:transform .2s;margin-top:8px}
+.plan-card .cta-plan:hover{transform:translateY(-2px)}
+.plan-card .footnote{font-size:11px;color:#3a5a7a;margin-top:10px}
 .footer{text-align:center;padding:20px;font-size:11px;color:#3a5a7a;border-top:1px solid rgba(255,255,255,0.04)}
 .nav{display:flex;gap:12px;justify-content:center;padding:8px;position:relative;z-index:1}
 .nav a{color:#6a8ab6;text-decoration:none;font-size:12px;padding:4px 10px;border-radius:4px}
@@ -56,124 +59,113 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 <div class="hero">
-  <div class="logo">⚡ <span>Spor</span>Trend</div>
-  <div class="tagline">API de données sportives B2B</div>
+  <div class="logo">&#9889; <span>Spor</span>Trend</div>
+  <div class="tagline">API de donnees sportives B2B</div>
   <div class="nav">
-    <a href="/">Dashboard</a>
+    <a href="/dashboard">Dashboard</a>
     <a href="/api/v1/info">API Status</a>
     <a href="#docs">Documentation</a>
-    <a href="#plans">Plans</a>
+    <a href="#plan">Plan</a>
     <a href="/radar">Live Radar</a>
   </div>
-  <h1>Cotes sportives <strong>en temps réel</strong></h1>
-  <p>Agrégation multi-sources. Couverture mondiale. Disponible via API REST, WebSocket et Data Feed. Pour bookmakers, sites de paris et plateformes sportives.</p>
+  <h1>Cotes sportives <strong>en temps reel</strong></h1>
+  <p>Agregation multi-sources multi-sports. Couverture mondiale. Donnees en direct via API REST, WebSocket et Data Feed. Pour bookmakers, sites de paris et plateformes sportives.</p>
   <div class="stats-row" id="stats">
     <div class="stat-box"><div class="stat-num" id="statMatches">-</div><div class="stat-label">Matchs en direct</div></div>
-    <div class="stat-box"><div class="stat-num" id="statSources">5</div><div class="stat-label">Sources</div></div>
-    <div class="stat-box"><div class="stat-num" id="statSports">5</div><div class="stat-label">Sports</div></div>
-    <div class="stat-box"><div class="stat-num" id="statMarkets">30+</div><div class="stat-label">Marchés</div></div>
+    <div class="stat-box"><div class="stat-num" id="statSources">6</div><div class="stat-label">Sources</div></div>
+    <div class="stat-box"><div class="stat-num" id="statSports">9</div><div class="stat-label">Sports</div></div>
+    <div class="stat-box"><div class="stat-num">120+</div><div class="stat-label">Marches</div></div>
   </div>
-  <a class="cta" href="/api/v1/matches">Essayer l'API →</a>
+  <a class="cta" href="#plan">Voir le plan &rarr;</a>
 </div>
 
 <div class="section">
-  <h2><span>⚡</span> Données couvertes</h2>
+  <h2><span>&#9889;</span> Donnees couvertes</h2>
   <div class="sources">
-    <span class="source">🗞️ ESPN</span>
-    <span class="source">⚽ Flashscore</span>
-    <span class="source">🎲 Unibet</span>
-    <span class="source">📊 BetExplorer</span>
-    <span class="source">🏟️ SofaScore</span>
+    <span class="source">&#x1F5DE;&#xFE0F; ESPN</span>
+    <span class="source">&#9917; Flashscore</span>
+    <span class="source">&#127922; Unibet</span>
+    <span class="source">&#128202; BetExplorer</span>
+    <span class="source">&#127979;&#65039; SofaScore</span>
+    <span class="source">&#127920; 1xBet</span>
   </div>
   <div class="features">
-    <div class="feat"><h3>Football</h3><p>Top ligues européennes + compétitions internationales, cotes 1X2, chances doubles, BTS, O/U</p></div>
-    <div class="feat"><h3>NBA / WNBA</h3><p>Basketball américain, Moneyline, Spread, Over/Under</p></div>
-    <div class="feat"><h3>NFL / MLB / NHL</h3><p>Football américain, baseball, hockey — tous les marchés disponibles</p></div>
-    <div class="feat"><h3>Tennis & MMA</h3><p>ATP, WTA, UFC — cotes en temps réel avec tous les marchés</p></div>
-    <div class="feat"><h3>Golf</h3><p>Tournois PGA — cotes gagnant et marchés spéciaux</p></div>
-    <div class="feat"><h3>30+ types de marchés</h3><p>1X2, DC, BTS, O/U, handicap, score exact, MT/FT, combinés, etc.</p></div>
+    <div class="feat"><h3>Football</h3><p>Toutes les ligues mondiales. Cotes 1X2, DC, BTS, O/U, handicap, score exact, MT/FT.</p></div>
+    <div class="feat"><h3>NBA / WNBA</h3><p>Basketball americain. Moneyline, Spread, O/U, quart-temps, joueurs.</p></div>
+    <div class="feat"><h3>NFL / MLB / NHL</h3><p>Football US, baseball, hockey. Tous les marches disponibles.</p></div>
+    <div class="feat"><h3>Tennis & MMA</h3><p>ATP, WTA, Grand Chelems, UFC. Cotes temps reel.</p></div>
+    <div class="feat"><h3>Golf & Rugby</h3><p>Tournois PGA, Rugby World Cup. Marches speciaux.</p></div>
+    <div class="feat"><h3>120+ types de marches</h3><p>1X2, DC, BTS, O/U, handicap asiatique, score exact, MT/FT, combines, player props.</p></div>
+  </div>
+</div>
+
+<div class="section" id="plan">
+  <h2><span>&#128142;</span> Plan Unique — Tout Inclus</h2>
+  <div class="plan-card">
+    <div class="plan-name">&#9889; SporTrend</div>
+    <div class="plan-sub">Acces complet &bull; Aucune limite &bull; Temps reel</div>
+    <div class="trial-badge">&#127873; ESSAI GRATUIT 7 JOURS</div>
+    <div class="price-big">50 $ <span>/ mois</span></div>
+    <div class="plan-sub">Apres l essai gratuit</div>
+    <ul>
+      <li class="highlight">Tous les championnats — aucune restriction</li>
+      <li class="highlight">Requetes illimitees — pas de limite</li>
+      <li class="highlight">WebSocket temps reel — latence &lt; 1s</li>
+      <li class="highlight">120+ marches par match</li>
+      <li class="highlight">Live scores + matchs a venir</li>
+      <li class="highlight">Toutes les sources : ESPN, 1xBet, Unibet, Flashscore, BetExplorer</li>
+      <li>Dashboard temps reel inclus</li>
+      <li>Historique PostgreSQL</li>
+      <li>API REST complete</li>
+      <li>Support prioritaire</li>
+      <li>Pas d engagement — resiliez quand vous voulez</li>
+    </ul>
+    <a class="cta-plan" href="/api/v1/matches">&#127919; Commencer l essai gratuit</a>
+    <div class="footnote">Aucune carte bancaire requise pour l essai. Cle API : <code>demo_key_001</code></div>
   </div>
 </div>
 
 <div class="section" id="docs">
-  <h2><span>📖</span> Documentation API</h2>
+  <h2><span>&#128214;</span> Documentation API</h2>
   <div class="docs-section">
-    <h3>Authentification</h3>
-    <p style="font-size:12px;color:#6a8ab6">Clé API envoyée via header <code>X-API-Key</code> ou paramètre <code>?key=</code></p>
-    
-    <h3>Endpoints</h3>
-    
-    <div class="param"><span>GET /api/v1/health</span><span>Statut du service et nombre de matchs</span></div>
-    <pre>curl -H "X-API-Key: demo_key_001" http://185.182.9.199:3000/api/v1/health</pre>
-    
-    <div class="param"><span>GET /api/v1/matches</span><span>Tous les matchs avec cotes</span></div>
-    <pre>curl -H "X-API-Key: demo_key_001" http://185.182.9.199:3000/api/v1/matches?source=espn&sport=NFL&status=live</pre>
-    
-    <div class="param"><span>GET /api/v1/matches/:id/markets</span><span>30+ marchés de paris pour un match</span></div>
-    <pre>curl -H "X-API-Key: demo_key_001" http://185.182.9.199:3000/api/v1/matches/esnp_soccer_eng_1_401879301/markets</pre>
-    
-    <div class="param"><span>GET /api/v1/competitions</span><span>Compétitions disponibles</span></div>
-    <div class="param"><span>GET /api/v1/live/now</span><span>Matchs en direct uniquement</span></div>
-    <div class="param"><span>GET /api/v1/results</span><span>Résultats récents</span></div>
-    <div class="param"><span>GET /api/v1/info</span><span>Statistiques détaillées</span></div>
-    
-    <h3>Paramètres de filtrage</h3>
-    <div class="param"><span><code>?source=espn</code></span><span>Filtrer par source (espn, unibet, betexplorer, flashscore)</span></div>
-    <div class="param"><span><code>?sport=NFL</code></span><span>Filtrer par sport (Football, NFL, MLB, NBA, NHL, etc.)</span></div>
-    <div class="param"><span><code>?status=live</code></span><span>Statut (live, upcoming, finished)</span></div>
-    <div class="param"><span><code>?limit=50</code></span><span>Limiter le nombre de résultats</span></div>
-    
-    <h3>WebSocket (temps réel)</h3>
+    <h3>&#128273; Authentification</h3>
+    <pre>curl -H "X-API-Key: demo_key_001" \
+  http://185.182.9.199:3000/api/v1/matches</pre>
+
+    <h3>&#128250; Endpoints REST</h3>
+    <div class="param"><span>GET /api/v1/health</span><span>Statut du service</span></div>
+    <div class="param"><span>GET /api/v1/info</span><span>Stats detaillees</span></div>
+    <div class="param"><span>GET /api/v1/matches</span><span>Tous les matchs</span></div>
+    <div class="param"><span>GET /api/v1/matches/{id}</span><span>Detail d un match</span></div>
+    <div class="param"><span>GET /api/v1/matches/{id}/odds</span><span>Cotes d un match</span></div>
+    <div class="param"><span>GET /api/v1/competitions</span><span>Competitions disponibles</span></div>
+    <div class="param"><span>GET /api/v1/live/now</span><span>Matchs en direct</span></div>
+    <div class="param"><span>GET /api/v1/history</span><span>Historique</span></div>
+
+    <h3>&#128268; WebSocket</h3>
+    <p>Connectez-vous en temps reel :</p>
     <pre>ws://185.182.9.199:3000/ws?key=demo_key_001</pre>
-    <p style="font-size:12px;color:#6a8ab6">Reçoit les mises à jour des matchs et cotes en temps réel</p>
-  </div>
-</div>
+    <p>Evenements : <code>match:update</code>, <code>odds:update</code>, <code>live:event</code>, <code>statistics:update</code></p>
 
-<div class="section" id="plans">
-  <h2><span>💎</span> Plans B2B</h2>
-  <div class="plans">
-    <div class="plan">
-      <h3>Starter</h3>
-      <div class="price">Gratuit</div>
-      <ul>
-        <li>Accès API REST complet</li>
-        <li>Jusqu'à 100 requêtes/minute</li>
-        <li>5 sources de données</li>
-        <li>30+ marchés</li>
-        <li>Dashboard inclus</li>
-      </ul>
-      <a class="cta-sm" href="/api/v1/matches">Essayer</a>
-    </div>
-    <div class="plan pop">
-      <h3>🔥 Pro</h3>
-      <div class="price">Sur devis</div>
-      <ul>
-        <li>Requêtes illimitées</li>
-        <li>WebSocket temps réel</li>
-        <li>Historique PostgreSQL</li>
-        <li>API dédiée</li>
-        <li>SLA 99.9%</li>
-        <li>Support prioritaire</li>
-      </ul>
-      <a class="cta-sm" href="mailto:afrique2info@gmail.com">Nous contacter</a>
-    </div>
+    <h3>&#128230; Exemple JavaScript</h3>
+    <pre>const ws = new WebSocket("ws://185.182.9.199:3000/ws?key=demo_key_001");
+ws.onmessage = (e) => {
+  const data = JSON.parse(e.data);
+  console.log(data.type, data.matches?.length || data);
+};</pre>
   </div>
-</div>
-
-<div class="footer">
-  SporTrend API © 2026 — <a href="mailto:afrique2info@gmail.com" style="color:#5a7a9a">Contact</a>
-  — Propulsé par odds-aggregator v2.0
 </div>
 
 <script>
-fetch('/api/v1/info').then(r=>r.json()).then(d=>{
+fetch("/api/v1/health").then(r=>r.json()).then(d=>{
   if(d.success){
-    const data=d.data;
-    document.getElementById('statMatches').textContent=data.totalMatches||'-';
-    const sports=data.matchesBySport?Object.keys(data.matchesBySport).length:'-';
-    document.getElementById('statSports').textContent=sports;
+    document.getElementById("statMatches").textContent = d.data.matchesInRedis || 0;
   }
 }).catch(()=>{});
 </script>
+
+<div class="footer">
+  SporTrend &mdash; &copy; 2026 Odds Aggregator. Tous droits reserves.
+</div>
 </body>
 </html>
