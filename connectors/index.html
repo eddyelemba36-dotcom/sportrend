@@ -170,6 +170,18 @@ ws.onmessage = (e) => {
 </div>
 
 <script>
+// --- Hero Background Carousel (sport images) ---
+(function(){
+  var slides = document.querySelectorAll("#heroBg .bg-slide");
+  if(!slides.length) return;
+  var current = 0;
+  setInterval(function(){
+    slides[current].classList.remove("active");
+    current = (current + 1) % slides.length;
+    slides[current].classList.add("active");
+  }, 5000);
+})();
+
 fetch("/api/v1/health").then(r=>r.json()).then(d=>{
   if(d.success){
     document.getElementById("statMatches").textContent = d.data.matchesInRedis || 0;
