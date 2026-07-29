@@ -76,6 +76,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <a href="#docs">Documentation</a>
     <a href="#plan">Plan</a>
     <a href="/radar">Live Radar</a>
+    <a href="#" id="loginBtn" style="margin-left:auto;background:var(--gradient-accent);color:#fff;border-radius:6px;font-weight:600">Connexion</a>
   </div>
   <div class="hero-mid">
     <div class="logo">&#9889; <span>Spor</span>Trend</div>
@@ -169,6 +170,75 @@ ws.onmessage = (e) => {
   </div>
 </div>
 
+<style>
+/* Auth Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.modal{background:#0e1626;border:1px solid rgba(0,180,255,0.2);border-radius:16px;width:90%;max-width:420px;padding:32px;position:relative;animation:modalIn 0.3s ease}
+@keyframes modalIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-close{position:absolute;top:12px;right:16px;color:#5a7a9a;font-size:22px;cursor:pointer;background:none;border:none}
+.modal-close:hover{color:#fff}
+.modal h2{font-size:20px;font-weight:700;margin-bottom:4px;text-align:center}
+.modal .sub{font-size:13px;color:#5a7a9a;text-align:center;margin-bottom:20px}
+.modal .tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.modal .tab{flex:1;padding:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;color:#5a7a9a;border-bottom:2px solid transparent;transition:all 0.2s}
+.modal .tab.active{color:#00b4ff;border-bottom-color:#00b4ff}
+.modal .tab:hover{color:#e0e6f0}
+.modal .form-group{margin-bottom:14px}
+.modal .form-group label{display:block;font-size:12px;color:#5a7a9a;margin-bottom:4px}
+.modal .form-group input{width:100%;padding:10px 14px;background:#0d1730;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#e0e6f0;font-size:14px;outline:none;transition:border 0.2s}
+.modal .form-group input:focus{border-color:#00b4ff}
+.modal .form-btn{width:100%;padding:12px;background:linear-gradient(135deg,#00b4ff,#0066cc);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:transform 0.2s}
+.modal .form-btn:hover{transform:translateY(-1px)}
+.modal .form-btn:disabled{opacity:0.5;cursor:not-allowed}
+.modal .error{color:#ff5252;font-size:12px;text-align:center;margin-top:8px;display:none}
+.modal .success{color:#00e676;font-size:12px;text-align:center;margin-top:8px;display:none}
+.modal .api-key-box{background:#0d1730;border:1px solid rgba(0,180,255,0.15);border-radius:8px;padding:12px;margin-top:12px;text-align:center;display:none}
+.modal .api-key-box .label{font-size:11px;color:#5a7a9a;margin-bottom:4px}
+.modal .api-key-box .key{font-family:monospace;font-size:13px;color:#00d4ff;font-weight:700;word-break:break-all}
+.modal .api-key-box .copy-btn{display:inline-block;margin-top:6px;padding:4px 12px;background:rgba(0,180,255,0.1);color:#00b4ff;border:1px solid rgba(0,180,255,0.2);border-radius:4px;font-size:11px;cursor:pointer}
+.form-group.hidden{display:none}
+</style>
+
+<!-- Auth Modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">&times;</button>
+    <h2 id="modalTitle">Connexion</h2>
+    <p class="sub" id="modalSub">Connectez-vous pour obtenir votre cle API</p>
+    <div class="tabs">
+      <div class="tab active" data-tab="login" id="tabLogin">Connexion</div>
+      <div class="tab" data-tab="register" id="tabRegister">Inscription</div>
+    </div>
+    <div id="formContainer">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="authEmail" placeholder="exemple@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="authPassword" placeholder="Minimum 6 caracteres" />
+      </div>
+      <div class="form-group hidden" id="nameGroup">
+        <label>Nom complet</label>
+        <input type="text" id="authName" placeholder="Votre nom" />
+      </div>
+      <div class="form-group hidden" id="companyGroup">
+        <label>Entreprise (optionnel)</label>
+        <input type="text" id="authCompany" placeholder="Votre entreprise" />
+      </div>
+      <div class="error" id="authError"></div>
+      <div class="success" id="authSuccess"></div>
+      <div class="api-key-box" id="apiKeyBox">
+        <div class="label">Votre cle API personnelle</div>
+        <div class="key" id="apiKeyDisplay"></div>
+        <button class="copy-btn" id="copyKeyBtn">Copier la cle</button>
+      </div>
+      <button class="form-btn" id="authBtn">Se connecter</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // --- Hero Background Carousel (sport images) ---
 (function(){
@@ -180,6 +250,131 @@ ws.onmessage = (e) => {
     current = (current + 1) % slides.length;
     slides[current].classList.add("active");
   }, 5000);
+})();
+
+// --- Auth System ---
+(function(){
+  var modal = document.getElementById("authModal");
+  var loginBtn = document.getElementById("loginBtn");
+  var closeBtn = document.getElementById("modalClose");
+  var tabLogin = document.getElementById("tabLogin");
+  var tabRegister = document.getElementById("tabRegister");
+  var authBtn = document.getElementById("authBtn");
+  var authEmail = document.getElementById("authEmail");
+  var authPassword = document.getElementById("authPassword");
+  var authName = document.getElementById("authName");
+  var authCompany = document.getElementById("authCompany");
+  var authError = document.getElementById("authError");
+  var authSuccess = document.getElementById("authSuccess");
+  var apiKeyBox = document.getElementById("apiKeyBox");
+  var apiKeyDisplay = document.getElementById("apiKeyDisplay");
+  var nameGroup = document.getElementById("nameGroup");
+  var companyGroup = document.getElementById("companyGroup");
+  var modalTitle = document.getElementById("modalTitle");
+  var modalSub = document.getElementById("modalSub");
+  
+  var isLogin = true;
+  
+  function showError(msg){
+    authError.textContent = msg;
+    authError.style.display = "block";
+    authSuccess.style.display = "none";
+  }
+  function showSuccess(msg){
+    authSuccess.textContent = msg;
+    authSuccess.style.display = "block";
+    authError.style.display = "none";
+  }
+  
+  function switchMode(login){
+    isLogin = login;
+    if(login){
+      modalTitle.textContent = "Connexion";
+      modalSub.textContent = "Connectez-vous pour obtenir votre cle API";
+      authBtn.textContent = "Se connecter";
+      tabLogin.classList.add("active");
+      tabRegister.classList.remove("active");
+      nameGroup.classList.add("hidden");
+      companyGroup.classList.add("hidden");
+    } else {
+      modalTitle.textContent = "Inscription";
+      modalSub.textContent = "Creez un compte pour obtenir votre cle API";
+      authBtn.textContent = "Creer mon compte";
+      tabRegister.classList.add("active");
+      tabLogin.classList.remove("active");
+      nameGroup.classList.remove("hidden");
+      companyGroup.classList.remove("hidden");
+    }
+    authError.style.display = "none";
+    authSuccess.style.display = "none";
+    apiKeyBox.style.display = "none";
+  }
+  
+  loginBtn.addEventListener("click", function(e){
+    e.preventDefault();
+    switchMode(true);
+    modal.classList.add("show");
+  });
+  closeBtn.addEventListener("click", function(){
+    modal.classList.remove("show");
+  });
+  modal.addEventListener("click", function(e){
+    if(e.target === modal) modal.classList.remove("show");
+  });
+  tabLogin.addEventListener("click", function(){ switchMode(true); });
+  tabRegister.addEventListener("click", function(){ switchMode(false); });
+  
+  authBtn.addEventListener("click", async function(){
+    var email = authEmail.value.trim();
+    var password = authPassword.value;
+    if(!email || !password) { showError("Veuillez remplir tous les champs"); return; }
+    if(!isLogin && !authName.value.trim()) { showError("Veuillez entrer votre nom"); return; }
+    if(!isLogin && password.length < 6) { showError("Le mot de passe doit faire au moins 6 caracteres"); return; }
+    
+    authBtn.disabled = true;
+    authBtn.textContent = isLogin ? "Connexion..." : "Inscription...";
+    authError.style.display = "none";
+    authSuccess.style.display = "none";
+    apiKeyBox.style.display = "none";
+    
+    try {
+      var endpoint = isLogin ? "/api/v1/auth/login" : "/api/v1/auth/register";
+      var body = { email: email, password: password };
+      if(!isLogin) {
+        body.name = authName.value.trim();
+        body.company = authCompany.value.trim() || null;
+      }
+      
+      var resp = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      var data = await resp.json();
+      
+      if(data.success){
+        showSuccess("" + (isLogin ? "Connecte !" : "Compte cree !") + " Voici votre cle API :");
+        apiKeyDisplay.textContent = data.data.user.api_key;
+        apiKeyBox.style.display = "block";
+      } else {
+        showError(data.error || "Erreur inconnue");
+      }
+    } catch(e) {
+      showError("Erreur de connexion au serveur");
+    }
+    
+    authBtn.disabled = false;
+    authBtn.textContent = isLogin ? "Se connecter" : "Creer mon compte";
+  });
+  
+  // Copy API key
+  document.getElementById("copyKeyBtn").addEventListener("click", function(){
+    var key = apiKeyDisplay.textContent;
+    navigator.clipboard.writeText(key).then(function(){
+      document.getElementById("copyKeyBtn").textContent = "Copie !";
+      setTimeout(function(){ document.getElementById("copyKeyBtn").textContent = "Copier la cle"; }, 2000);
+    });
+  });
 })();
 
 fetch("/api/v1/health").then(r=>r.json()).then(d=>{

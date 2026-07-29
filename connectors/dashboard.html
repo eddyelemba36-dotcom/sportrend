@@ -8,6 +8,20 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#080c18;color:#e0e6f0;font-size:13px}
 
 /* Header */
+.user-profile{background:rgba(0,180,255,0.04);border:1px solid rgba(0,180,255,0.12);border-radius:8px;padding:10px 14px;margin:6px 12px;display:none;align-items:center;gap:12px;flex-wrap:wrap}
+.user-profile.show{display:flex}
+.user-profile .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00b4ff,#0066cc);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff}
+.user-profile .info{flex:1}
+.user-profile .info .name{font-size:14px;font-weight:600}
+.user-profile .info .email{font-size:11px;color:#5a7a9a}
+.user-profile .api-key-box{background:#0d1730;border:1px solid rgba(0,180,255,0.1);border-radius:6px;padding:6px 12px;display:flex;align-items:center;gap:8px}
+.user-profile .api-key-box .label{font-size:10px;color:#5a7a9a}
+.user-profile .api-key-box .key{font-family:monospace;font-size:11px;color:#00d4ff;font-weight:600}
+.user-profile .api-key-box button{background:rgba(0,180,255,0.1);color:#00b4ff;border:1px solid rgba(0,180,255,0.15);border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer}
+.user-profile .api-key-box button:hover{background:rgba(0,180,255,0.2)}
+.user-profile .logout-btn{background:rgba(255,82,82,0.1);color:#ff5252;border:1px solid rgba(255,82,82,0.2);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer}
+.user-profile .logout-btn:hover{background:rgba(255,82,82,0.2)}
+
 .topbar{background:linear-gradient(135deg,#0b1628,#132044);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,0.04)}
 .logo{font-size:16px;font-weight:700}
 .logo span{color:#00b4ff}
@@ -99,6 +113,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .op.lock{background:rgba(255,255,255,0.05);color:#f44;font-size:10px;cursor:not-allowed;letter-spacing:1px}
 </style>
+<div class="user-profile" id="userProfile">
+  <div class="avatar" id="userAvatar">E</div>
+  <div class="info">
+    <div class="name" id="userName">Utilisateur</div>
+    <div class="email" id="userEmail">email@exemple.com</div>
+  </div>
+  <div class="api-key-box">
+    <div><div class="label">Votre cle API</div><div class="key" id="userApiKey">***</div></div>
+    <button onclick="navigator.clipboard.writeText(document.getElementById("userApiKey").textContent);this.textContent="Copie !";setTimeout(()=>this.textContent="Copier",2000)">Copier</button>
+  </div>
+  <button class="logout-btn" onclick="localStorage.removeItem("sportrend_user");window.location.href="/"">Deconnexion</button>
+</div>
+
 </head>
 <body>
 
@@ -131,7 +158,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>/* v7 */
-const A=window.location.origin+"/api/v1",K="demo_key_001"
+const A=window.location.origin+"/api/v1";const su=JSON.parse(localStorage.getItem("sportrend_user")||"null");const K=su?su.api_key:"demo_key_001"
 const F=u=>fetch(u,{headers:{"X-API-Key":K}})
 
 const SI={
