@@ -6,7 +6,9 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#080c18;color:#e0e6f0;overflow-x:hidden}
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:100px 20px 80px}
+.hero{min-height:100vh;padding:0;text-align:center;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.hero .nav{padding:20px 16px 0;position:relative;z-index:2;flex-shrink:0}
+.hero .hero-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
 .hero-bg{position:absolute;top:0;left:0;width:100%;height:100%;z-index:-1;overflow:hidden}
 .hero-bg .bg-slide{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;transition:opacity 1.5s ease-in-out;background-size:cover;background-position:center;background-repeat:no-repeat}
 .hero-bg .bg-slide.active{opacity:1}
@@ -68,8 +70,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="bg-slide" style="background-image:url('https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1920&q=80')"></div>
     <div class="bg-slide" style="background-image:url('https://images.unsplash.com/photo-1647516260049-46f1f14a785c?w=1920&q=80')"></div>
   </div>
-  <div class="logo">&#9889; <span>Spor</span>Trend</div>
-  <div class="tagline">API de donnees sportives B2B</div>
   <div class="nav">
     <a href="/dashboard">Dashboard</a>
     <a href="/api/v1/info">API Status</a>
@@ -77,15 +77,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <a href="#plan">Plan</a>
     <a href="/radar">Live Radar</a>
   </div>
-  <h1>Cotes sportives <strong>en temps reel</strong></h1>
-  <p>Agregation multi-sources multi-sports. Couverture mondiale. Donnees en direct via API REST, WebSocket et Data Feed. Pour bookmakers, sites de paris et plateformes sportives.</p>
-  <div class="stats-row" id="stats">
-    <div class="stat-box"><div class="stat-num" id="statMatches">-</div><div class="stat-label">Matchs en direct</div></div>
-    <div class="stat-box"><div class="stat-num" id="statSources">6</div><div class="stat-label">Sources</div></div>
-    <div class="stat-box"><div class="stat-num" id="statSports">9</div><div class="stat-label">Sports</div></div>
-    <div class="stat-box"><div class="stat-num">120+</div><div class="stat-label">Marches</div></div>
+  <div class="hero-mid">
+    <div class="logo">&#9889; <span>Spor</span>Trend</div>
+    <div class="tagline">API de donnees sportives B2B</div>
+    <h1>Cotes sportives <strong>en temps reel</strong></h1>
+    <p>Agregation multi-sources multi-sports. Couverture mondiale. Donnees en direct via API REST, WebSocket et Data Feed. Pour bookmakers, sites de paris et plateformes sportives.</p>
+    <div class="stats-row" id="stats">
+      <div class="stat-box"><div class="stat-num" id="statMatches">-</div><div class="stat-label">Matchs en direct</div></div>
+      <div class="stat-box"><div class="stat-num" id="statSources">6</div><div class="stat-label">Sources</div></div>
+      <div class="stat-box"><div class="stat-num" id="statSports">9</div><div class="stat-label">Sports</div></div>
+      <div class="stat-box"><div class="stat-num">120+</div><div class="stat-label">Marches</div></div>
+    </div>
+    <a class="cta" href="#plan">Voir le plan &rarr;</a>
   </div>
-  <a class="cta" href="#plan">Voir le plan &rarr;</a>
 </div>
 
 <div class="section">
