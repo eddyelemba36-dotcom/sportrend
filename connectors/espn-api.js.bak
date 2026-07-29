@@ -1,0 +1,216 @@
+/**
+ * ESPN Multi-Sport Scraper v4 — Future dates + all soccer leagues
+ * Sources: NBA, WNBA, NFL, MLB, NHL, UFC, PGA, Tennis ATP/WTA + soccer leagues
+ */
+const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
+const { createClient } = require("redis");
+const https = require("https");
+
+let redis = null;
+function log(m) { console.log("["+new Date().toLocaleTimeString("fr-FR",{hour12:false})+"] [ESPN] "+m); }
+
+function fetchJSON(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, {timeout:15000,headers:{"User-Agent":"Mozilla/5.0"}},(r)=>{
+      let d=""; r.on("data",c=>d+=c); r.on("end",()=>{try{resolve(JSON.parse(d))}catch(e){reject(e)}});
+    }).on("error",reject).on("timeout",function(){this.destroy();reject(new Error("Timeout"))});
+  });
+}
+
+async function getRedis() {
+  if (!redis||!redis.isOpen) { redis=createClient({url:REDIS_URL}); redis.on("error",e=>log("Redis: "+e.message)); await redis.connect(); }
+  return redis;
+}
+
+function conv(ml) {
+  if (!ml||ml==="OFF"||ml==="EVEN") return "";
+  const v=parseInt(ml.replace(/[+\s]/g,"")); if(isNaN(v)) return "";
+  return v>0 ? ((v/100)+1).toFixed(2) : (1+(100/Math.abs(v))).toFixed(2);
+}
+
+// Current sports config
+const SPORTS = [
+  { slug: "soccer/all", sport: "football", label: "Football", futureDays: 0 },
+  { slug: "basketball/nba", sport: "basketball", label: "NBA", futureDays: 0 },
+  { slug: "basketball/wnba", sport: "basketball", label: "WNBA", futureDays: 0 },
+  { slug: "football/nfl", sport: "football", label: "NFL", futureDays: 0 },
+  { slug: "baseball/mlb", sport: "baseball", label: "MLB", futureDays: 5 },
+  { slug: "hockey/nhl", sport: "hockey", label: "NHL", futureDays: 0 },
+  { slug: "mma/ufc", sport: "mma", label: "UFC", futureDays: 0 },
+  { slug: "golf/pga", sport: "golf", label: "PGA", futureDays: 0 },
+  { slug: "tennis/atp", sport: "tennis", label: "ATP", futureDays: 0 },
+  { slug: "tennis/wta", sport: "tennis", label: "WTA", futureDays: 0 },
+];
+
+// Soccer specific leagues for more coverage
+const SOCCER_LEAGUES = [
+  { slug: "uefa.euro", label: "EURO" },
+  { slug: "uefa.champions", label: "UCL" },
+  { slug: "uefa.europa", label: "UEL" },
+  { slug: "eng.1", label: "Premier League" },
+  { slug: "esp.1", label: "LaLiga" },
+  { slug: "ita.1", label: "Serie A" },
+  { slug: "ger.1", label: "Bundesliga" },
+  { slug: "fra.1", label: "Ligue 1" },
+];
+
+async function scrapeEndpoint(r, slug, label, daysForward) {
+  const today = new Date();
+  let total = 0;
+  
+  if (daysForward <= 0) {
+    return await scrapeDate(r, slug, label, null);
+  }
+  
+  for (let i = 0; i <= daysForward; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const ds = d.toISOString().slice(0,10).replace(/-/g, "");
+    const n = await scrapeDate(r, slug, label, ds);
+    total += n;
+  }
+  if (total > 0) log(label + " (" + (daysForward+1) + " days): " + total);
+  return total;
+}
+
+async function scrapeDate(r, slug, label, dateStr) {
+  let url = `https://site.api.espn.com/apis/site/v2/sports/${slug}/scoreboard`;
+  if (dateStr) url += "?dates=" + dateStr;
+  
+  let data;
+  try { data = await fetchJSON(url); }
+  catch(e) { return 0; }
+
+  const events = data.events||[];
+  if (!events.length) return 0;
+  let count = 0;
+
+  for (const event of events) {
+    const comp = event.competitions?.[0];
+    if (!comp||!comp.competitors||comp.competitors.length<2) continue;
+    const home = comp.competitors.find(c=>c.homeAway==="home");
+    const away = comp.competitors.find(c=>c.homeAway==="away");
+    if (!home||!away) continue;
+
+    const hName = (home.team?.displayName||home.athlete?.displayName||"?");
+    const aName = (away.team?.displayName||away.athlete?.displayName||"?");
+    const st = comp.status||{};
+    const state = st.type?.state||"pre";
+    const isComplete = state==="post"||state==="completed";
+    const isLive = state==="in";
+
+    const compName = label + (comp.altGameNote?" - "+comp.altGameNote:"");
+    const id = "match:esnp_" + slug.replace(/[\/\.]/g,"_") + "_" + event.id;
+
+    // Skip if already stored with this data (dedup)
+    await r.hSet(id, "id", id.replace("match:",""));
+    await r.hSet(id, "homeTeam", hName);
+    await r.hSet(id, "awayTeam", aName);
+    await r.hSet(id, "homeScore", isComplete||isLive?(home.score||"0"):"");
+    await r.hSet(id, "awayScore", isComplete||isLive?(away.score||"0"):"");
+    await r.hSet(id, "competition", compName);
+    await r.hSet(id, "status", isLive?"live":(isComplete?"finished":"upcoming"));
+    await r.hSet(id, "source", "espn");
+    await r.hSet(id, "updatedAt", new Date().toISOString());
+
+    // Markets
+    const odds = (comp.odds||[]).filter(o=>o&&o.moneyline);
+    if (odds.length>0) {
+      const ml = odds[0].moneyline;
+      const mHome = ml.home?.close?.odds||ml.home?.open?.odds||"";
+      const mAway = ml.away?.close?.odds||ml.away?.open?.odds||"";
+      const mDraw = ml.draw?.close?.odds||ml.draw?.open?.odds||"";
+      await r.hSet(id, "odds1", conv(mHome));
+      await r.hSet(id, "odds2", conv(mAway));
+      await r.hSet(id, "oddsX", conv(mDraw));
+    } else {
+      // Generate artificial odds based on sport/league
+      var a1 = genOdds(compName, hName, aName);
+      await r.hSet(id, "odds1", String(a1.home));
+      await r.hSet(id, "oddsX", a1.draw ? String(a1.draw) : "");
+      await r.hSet(id, "odds2", String(a1.away));
+      await r.hSet(id, "spread_home_line", "0");
+      await r.hSet(id, "spread_home_odds", String(a1.home < a1.away ? a1.home : a1.away));
+      await r.hSet(id, "spread_away_line", "0");
+      await r.hSet(id, "spread_away_odds", String(a1.home < a1.away ? a1.away : a1.home));
+      await r.hSet(id, "over_line", "2.5");
+      await r.hSet(id, "over_odds", "1.85");
+      await r.hSet(id, "under_line", "2.5");
+      await r.hSet(id, "under_odds", "1.95");
+    }
+
+    // Over/Under
+      const tot = odds[0].total;
+      if (tot) {
+        try {
+          if (tot.over?.close) { await r.hSet(id, "over_line", (tot.over.close.line||"").replace(/^o/,"")); await r.hSet(id, "over_odds", conv(tot.over.close.odds)); }
+          if (tot.under?.close) { await r.hSet(id, "under_line", (tot.under.close.line||"").replace(/^u/,"")); await r.hSet(id, "under_odds", conv(tot.under.close.odds)); }
+        } catch(e) {}
+      }
+    }
+
+    await r.expire(id, 3600);
+    count++;
+  }
+  return count;
+}
+
+async function scrapeESPN() {
+  const r = await getRedis();
+  let total = 0;
+  
+  for (const cfg of SPORTS) {
+    try {
+      const n = await scrapeEndpoint(r, cfg.slug, cfg.label, cfg.futureDays);
+      if (n > 0) total += n;
+    } catch(e) { log(cfg.label + " error: " + e.message.slice(0,80)); }
+  }
+  
+  // Soccer specific leagues
+  for (const l of SOCCER_LEAGUES) {
+    try {
+      const n = await scrapeDate(r, "soccer/" + l.slug, l.label, null);
+      if (n > 0) total += n;
+    } catch(e) {}
+  }
+  
+  log("Total: " + total + " matchs");
+  return total;
+}
+
+// Artificial odds generator
+function genOdds(comp, home, away) {
+  var vig = 1.07; // 7% margin
+  // Base probabilities by competition type
+  var p = {home: 0.45, draw: 0.25, away: 0.30}; // default soccer
+  var c = comp.toLowerCase();
+  if (c.includes("nfl")) { p = {home: 0.50, draw: null, away: 0.50}; }
+  else if (c.includes("mlb")) { p = {home: 0.52, draw: null, away: 0.48}; }
+  else if (c.includes("nhl")) { p = {home: 0.53, draw: null, away: 0.47}; }
+  else if (c.includes("nba")||c.includes("wnba")) { p = {home: 0.55, draw: null, away: 0.45}; }
+  else if (c.includes("ufc")||c.includes("pga")) { p = {home: null, draw: null, away: null}; }
+  else if (c.includes("wta")||c.includes("atp")) { p = {home: 0.52, draw: null, away: 0.48}; }
+  // Add slight randomness (weighted by team name hash for consistency)
+  var h = 0;
+  for (var i = 0; i < home.length; i++) h += home.charCodeAt(i);
+  for (var i = 0; i < away.length; i++) h += away.charCodeAt(i) * 2;
+  var r = (h % 21 - 10) / 100; // -10% to +10%
+  if (p.home !== null) p.home = Math.max(0.25, Math.min(0.75, p.home + r));
+  if (p.away !== null) p.away = Math.max(0.25, Math.min(0.75, p.away - r));
+  if (p.draw !== null) p.draw = Math.max(0.15, Math.min(0.40, 1 - p.home - p.away));
+  // Normalize with vig
+  var total = 0;
+  if (p.home !== null) total += p.home;
+  if (p.draw !== null) total += p.draw;
+  if (p.away !== null) total += p.away;
+  if (total > 0) {
+    if (p.home !== null) p.home = (p.home / total) / vig;
+    if (p.draw !== null) p.draw = (p.draw / total) / vig;
+    if (p.away !== null) p.away = (p.away / total) / vig;
+  }
+  var toOdds = function(prob) { return prob > 0 ? Math.round((1/prob)*100)/100 : null; };
+  return {home: toOdds(p.home), draw: toOdds(p.draw), away: toOdds(p.away)};
+}
+
+module.exports = { scrapeESPN };
+if (require.main===module) { (async()=>{const n=await scrapeESPN(); console.log(n); process.exit(0);})(); }

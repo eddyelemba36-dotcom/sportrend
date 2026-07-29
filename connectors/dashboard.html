@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SporTrend • Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#080c18;color:#e0e6f0;font-size:13px}
+
+/* Header */
+.topbar{background:linear-gradient(135deg,#0b1628,#132044);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,0.04)}
+.logo{font-size:16px;font-weight:700}
+.logo span{color:#00b4ff}
+.topbar a{color:#6a8ab6;text-decoration:none;font-size:12px;padding:4px 10px;border-radius:4px}
+.topbar a:hover{color:#00d4ff;background:rgba(0,180,255,0.08)}
+
+/* Stats bar */
+.stats-bar{display:flex;gap:6px;padding:8px 12px;flex-wrap:wrap;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.04)}
+.stat-pill{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:6px;padding:4px 10px;font-size:11px;display:flex;align-items:center;gap:4px}
+.stat-pill .num{color:#00d4ff;font-weight:700}
+.stat-pill .lbl{color:#5a7a9a}
+.stat-pill.live{border-color:rgba(255,82,82,0.3)}
+.stat-pill.live .num{color:#ff5252;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.6}}
+
+/* Filters */
+.filters{display:flex;gap:6px;padding:8px 12px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,0.04)}
+.filters select{background:#0e1626;border:1px solid #1a2a45;color:#e0e6f0;padding:5px 10px;border-radius:5px;font-size:12px;outline:none;cursor:pointer}
+.filters select:hover{border-color:#00b4ff}
+.filters input{background:#0e1626;border:1px solid #1a2a45;color:#e0e6f0;padding:5px 10px;border-radius:5px;font-size:12px;outline:none;width:140px}
+.filters input:focus{border-color:#00b4ff}
+#viewType{padding:5px 10px;border-radius:5px;font-size:12px;cursor:pointer;background:#0e1626;border:1px solid #1a2a45;color:#e0e6f0}
+
+/* Match Grid */
+#g{padding:8px;display:grid;gap:6px;grid-template-columns:1fr}
+@media(min-width:500px){#g{grid-template-columns:1fr 1fr}}
+@media(min-width:800px){#g{grid-template-columns:1fr 1fr 1fr}}
+.c{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:8px;padding:10px;cursor:pointer;transition:all .2s}
+.c:hover{border-color:rgba(0,180,255,0.3);background:rgba(0,180,255,0.04);transform:translateY(-1px)}
+.t{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.t .h{font-weight:600;font-size:13px;flex:1}
+.t .aw{font-size:13px;color:#6a8ab6;flex:1;text-align:right}
+.t .sc{font-weight:700;font-size:14px;color:#ffd740;padding:0 8px}
+.m{display:flex;justify-content:space-between;font-size:10px;color:#3a5a7a;margin-top:4px}
+.m .sp{display:inline-flex;align-items:center;gap:3px;color:#5a7a9a}
+.m .sp svg{width:12px;height:12px}
+.m .src{background:rgba(0,180,255,0.08);color:#4fa8d6;padding:1px 6px;border-radius:3px}
+.mb{display:flex;gap:4px;margin-top:5px}
+.mb span{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(79,195,247,0.1);color:#4fc3f7}
+.or{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.op{padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600}
+.price-g{background:rgba(0,230,118,0.12);color:#00e676;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600}
+.price-b{background:rgba(79,195,247,0.12);color:#4fc3f7}
+.price-y{background:rgba(255,215,0,0.12);color:#ffd740}
+.price-r{background:rgba(255,82,82,0.12);color:#ff5252}
+.price-n{background:rgba(255,255,255,0.05);color:#6a8ab6}
+
+/* Modal */
+#modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;justify-content:center;align-items:center}
+#modal.on{display:flex}
+#mb{background:#0e1626;border:1px solid #1a2a45;border-radius:12px;width:90%;max-width:500px;max-height:85vh;overflow-y:auto;animation:slide .25s ease}
+@keyframes slide{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mh2{font-size:15px;font-weight:600;padding:14px 14px 6px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.msc{color:#ffd740;font-weight:700}
+.msub{font-size:11px;color:#5a7a9a;text-align:center;padding:0 14px 8px}
+.msub .sp{display:inline-flex;align-items:center;gap:3px}
+
+/* Market Tabs */
+.mts{display:flex;overflow-x:auto;gap:0;border-bottom:1px solid #1a2a45;padding:0;scrollbar-width:none;background:rgba(255,255,255,0.01)}
+.mts::-webkit-scrollbar{display:none}
+.mtab{white-space:nowrap;padding:7px 12px;font-size:11px;cursor:pointer;color:#5a7a9a;border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0}
+.mtab:hover{color:#e0e6f0;background:rgba(0,180,255,0.04)}
+.mtab.on{color:#00d4ff;border-bottom-color:#00d4ff}
+
+/* Market Content */
+#mmkt{padding:10px}
+.mcap h4{font-size:12px;font-weight:600;color:#5a7a9a;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.mr{display:flex;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px}
+.mr:last-child{border-bottom:none}
+.mr:hover{background:rgba(0,180,255,0.03)}
+.ml{flex:1;color:#e0e6f0}
+.mv{color:#4a5a72;font-size:11px;margin:0 8px}
+.md{font-weight:700;min-width:55px;text-align:right;font-size:13px}
+.em{text-align:center;padding:30px 0;color:#4a5a72;font-size:13px}
+
+/* Close */
+.close{position:absolute;top:10px;right:14px;font-size:20px;color:#4a5a72;cursor:pointer;background:none;border:none;z-index:10}
+
+@media(max-width:400px){.mtab{padding:6px 8px;font-size:10px}}
+.sp svg{vertical-align:middle;margin-right:2px}
+/* Lock overlay for live */
+.lk{text-align:center;padding:30px 0}
+.lki{font-size:48px;margin-bottom:10px}
+.lkt{color:#ff5252;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.lks{color:#667;font-size:12px;margin-top:6px}
+.lb{background:#ff5252;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;margin-left:8px;vertical-align:middle;animation:blink 2s infinite}
+.lkd{opacity:0.5;cursor:not-allowed!important;filter:grayscale(0.5)}
+.olive{background:#ff5252;color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;animation:blink 2s infinite;margin-left:auto}
+
+.op.lock{background:rgba(255,255,255,0.05);color:#f44;font-size:10px;cursor:not-allowed;letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">⚡ <span>Spor</span>Trend</div>
+  <div>
+    <a href="/">Accueil</a>
+    <a href="/radar">Radar</a>
+    <span style="color:#3a5a7a;font-size:11px" id="tm"></span>
+  </div>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<div class="filters">
+  <select id="spt"><option value="">Tous les sports</option></select>
+  <select id="nocotes" onchange="G()"><option value="">Avec/sans cotes</option><option value="1">Avec cotes</option></select>
+  <select id="src"><option value="">Toutes les sources</option></select>
+  <select id="st"><option value="">Statut</option><option value="live">Live</option><option value="upcoming">À venir</option><option value="finished">Terminé</option></select>
+  <input id="q" placeholder="🔍 Rechercher..." oninput="RS()">
+  <select id="viewType"><option value="grid">Grille</option><option value="list">Liste</option></select>
+</div>
+
+<div id="g"></div>
+
+<div id="modal" onclick="if(event.target===this)CM()">
+  <div id="mb">
+    <button class="close" onclick="CM()">✕</button>
+  </div>
+</div>
+
+<script>/* v7 */
+const A=window.location.origin+"/api/v1",K="demo_key_001"
+const F=u=>fetch(u,{headers:{"X-API-Key":K}})
+
+const SI={
+"NFL":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#013369" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="7" font-weight="bold">NFL</text></svg>',
+"MLB":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#041E42" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="6" font-weight="bold">MLB</text></svg>',
+"NHL":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#00205B" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="6" font-weight="bold">NHL</text></svg>',
+"NBA":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#C8102E" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="6" font-weight="bold">NBA</text></svg>',
+"WNBA":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E32636" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="5" font-weight="bold">WNBA</text></svg>',
+"UFC":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#D71A22" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="6" font-weight="bold">UFC</text></svg>',
+"PGA":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#174034" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="6" font-weight="bold">PGA</text></svg>',
+"ATP":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#D4A017" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="5" font-weight="bold">ATP</text></svg>',
+"WTA":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E91E8C" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="5" font-weight="bold">WTA</text></svg>',
+"Football":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#4CAF50" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="7" font-weight="bold">⚽</text></svg>'}
+const sp=m=>{const c=(m.competition||"").toLowerCase();return c.includes("nfl")?"NFL":c.includes("mlb")?"MLB":c.includes("nhl")?"NHL":c.includes("nba")?"NBA":c.includes("wnba")?"WNBA":c.includes("ufc")?"UFC":c.includes("pga")?"PGA":c.includes("atp")?"ATP":c.includes("wta")?"WTA":"Football"}
+const se=s=>SI[s]||s
+const co=o=>{const v=parseFloat(o);if(!v||v<1)return"";return v>=3?"price-g":v>=1.8?"price-b":v>=1.5?"price-y":"price-r"}
+const val=p=>p&&p>0&&p<1?Math.round(1/p*100)/100:null
+const PP=(o1,oX,o2)=>{let h=o1?1/parseFloat(o1):0,x=oX?1/parseFloat(oX):0,a=o2?1/parseFloat(o2):0;const s=h+x+a;if(s>0){h/=s;x/=s;a/=s}return{h,x,a}}
+function RC(n,r){var h='<div class="mcap"><h4>'+n+'</h4>';r.forEach(function(x){h+='<div class="mr"><span class="ml">'+x[0]+'</span>'+(x[1]?'<span class="mv">'+x[1]+'</span>':'')+'<span class="md '+co(x[2])+'">'+(x[2]||'-')+'</span></div>'});return h+'</div>'}
+
+let M=[],GO={},MI=null,MT=0
+
+const MK=[
+["ml","💰 1X2"],["ou","📈 +/-"],["dc","🔄 DC"],["bt","⚽ BTS"],["ht12","🕐 MT"],["hml","🕐 DC"],["htbts","🕐 BTS"],
+["spread","📊 Hdp"],["dnb","🤝 DNB"],["hte1x2","🕐 Hdp"],["oe","🔢 P/I"],["exact","🎯 Score"],["2ht1x2","🕑 2e"],
+["2htdc","🕑 DC"],["2htbts","🕑 BTS"],["2htou","🕑 +/-"],["htft","🔄 MT/FT"],["win2nil","🏆 W2N"],["margins","📏 Marges"],
+["htscore","🕐+ buts"],["multiscore","🎲 Multi"],["cleansheet","🧤 CS"],["bothhalves","🔄 2MT"],["anyhalf","🔄 1MT"],
+["exactgoals","🎯 Buts"],["multigoals","🎲 MG"],["winboth","🏆 2MT"],["teamtotal","📊 Eq"],["teamoe","🔢 Eq"],
+["mlou","1X2+Tot"],["mlbts","1X2+BTS"],["btsou","BTS+Tot"],["dcbts","DC+BTS"],["draworbts","N+BTS"],
+["drawou","N+Tot"],["htdcbts","MT DC+BTS"],["htmlou","MT 1X2+Tot"],["htmlbts","MT 1X2+BTS"],
+["2htmlou","2e+Tot"],["2htdcbts","2e DC+BTS"],["half1goal","⚽1re"],["half2goal","⚽2e"],["bothhalfbts","⚽2MT/BTS"]
+]
+
+function GM(m,od,h,a){
+  const o1=od.moneyline.home,oX=od.moneyline.draw,o2=od.moneyline.away
+  const sp=od.spread,to=od.total
+  const mlok=o1||o2,spok=sp&&sp.home&&sp.home.line,ouok=to&&to.over&&to.over.line
+  const P=PP(o1,oX,o2)
+  const O={}
+  O.ml=RC("💰 1X2",[['<span class="hc">'+h+"</span>","1",o1],(oX?["Nul","N",oX]:[]),['<span class="ac">'+a+"</span>","2",o2]].filter(x=>x.length>0))
+  O.ou=ouok?RC("📈 Total",[['<span style="color:#69f0ae">Plus</span>',to.over.line,to.over.odds],['<span style="color:#ff5252">Moins</span>',to.under.line,to.under.odds]]):RC("📈 Total",[["Pas de cotes","",""]])
+  O.dc=mlok?RC("🔄 DC",[[h+" ou Nul","1N",val(P.h+P.x)],[h+" vs "+a,"12",val(P.h+P.a)],[a+" ou Nul","N2",val(P.x+P.a)]]):RC("🔄 DC",[[""]])
+  O.bt=mlok?RC("⚽ BTS",[["Oui (les 2 marquent)","GG",val(P.h*P.a*1.5)],["Non","NG",val(1-P.h*P.a*1.5)]]):RC("⚽ BTS",[[""]])
+  O.ht12=RC("🕐 MT 1X2",[['<span class="hc">'+h+"</span>","1",val(P.h*0.4+0.3)],["Nul","N",val(P.x*0.6+0.5)],['<span class="ac">'+a+"</span>","2",val(P.a*0.4+0.3)]])
+  O.hml=RC("🕐 MT DC",[[h+" ou Nul","1N",val(P.h*0.4+P.x*0.6+0.5)],[h+" vs "+a,"12",val((P.h+P.a)*0.4+0.3)],[a+" ou Nul","N2",val(P.a*0.4+P.x*0.6+0.5)]])
+  O.htbts=RC("🕐 MT BTS",[["Oui","GG",val(P.h*P.a*0.6)],["Non","NG",val(1-P.h*P.a*0.6)]])
+  O.spread=spok?RC("📊 Handicap",[['<span class="hc">'+h+"</span>",sp.home.line,sp.home.odds],['<span class="ac">'+a+"</span>",sp.away.line,sp.away.odds]]):RC("📊 Handicap",[[""]])
+  O.dnb=mlok?RC("🤝 DNB",[['<span class="hc">'+h+"</span>","",val(P.h/(P.h+P.a))],['<span class="ac">'+a+"</span>","",val(P.a/(P.h+P.a))]]):RC("🤝 DNB",[[""]])
+  O.hte1x2=RC("🕐 MT Hdp (0)",[['<span class="hc">'+h+"</span>","",val(P.h*0.4+0.3)],["Nul","",val(P.x*0.6+0.5)],['<span class="ac">'+a+"</span>","",val(P.a*0.4+0.3)]])
+  O.oe=RC("🔢 Pair/Impair",[["Pair","",val(0.5)],["Impair","",val(0.5)]])
+  O.exact=RC("🎯 Score exact",[["N/A","",""]])
+  O["2ht1x2"]=RC("🕑 2e MT 1X2",[['<span class="hc">'+h+"</span>","1",val(P.h*0.4+0.3)],["Nul","N",val(P.x*0.35+0.4)],['<span class="ac">'+a+"</span>","2",val(P.a*0.4+0.3)]])
+  O["2htdc"]=RC("🕑 2e MT DC",[[h+" ou Nul","1N",val(P.h*0.4+P.x*0.35+0.4)],[h+" vs "+a,"12",val((P.h+P.a)*0.4+0.3)],[a+" ou Nul","N2",val(P.a*0.4+P.x*0.35+0.4)]])
+  O["2htbts"]=RC("🕑 2e MT BTS",[["Oui","GG",val(P.h*P.a*0.5)],["Non","NG",val(1-P.h*P.a*0.5)]])
+  O["2htou"]=RC("🕑 2e MT O/U (0.5)",[["+0.5","",val(0.85)],["-0.5","",val(0.15)]])
+  O.htft=RC("🔄 MT/FT",[['<span class="hc">'+h+"/"+h+"</span>","1/1",val(P.h*0.4*P.h*1.2)],["Nul/"+h,"N/1",val(P.x*P.h*1.1)],['<span class="ac">'+a+"/"+a+"</span>","2/2",val(P.a*0.4*P.a*1.2)],["Nul/"+a,"N/2",val(P.x*P.a*1.1)]])
+  O.win2nil=mlok?RC("🏆 Gagner sans encaisser",[[h+"","",val(P.h*(1-P.a*1.5))],[a+"","",val(P.a*(1-P.h*1.5))]]):RC("🏆 W2N",[[""]])
+  O.margins=RC("📏 Marges de victoire",[[h+" par 1 but","",val(P.h*0.4)],[h+" par 2+","",val(P.h*0.4)],[a+" par 1 but","",val(P.a*0.4)],[a+" par 2+","",val(P.a*0.4)]])
+  O.htscore=RC("🕐 + de buts à la",[["1ère MT","",val(0.33)],["2ème MT","",val(0.4)],["Égalité","",val(0.27)]])
+  O.multiscore=RC("🎲 Multiscore (0-3 buts)",[["0-1 buts","",val(0.4)],["2-3 buts","",val(0.35)],["4+ buts","",val(0.25)]])
+  O.cleansheet=RC("🧤 Clean Sheet",[[h+"","",val(0.35)],[a+"","",val(0.3)]])
+  O.bothhalves=RC("🔄 Marquer les 2 MT",[[h+"","",val(0.3)],[a+"","",val(0.25)]])
+  O.anyhalf=RC("🔄 Marquer en 1MT",[[h+"","",val(0.6)],[a+"","",val(0.45)]])
+  O.exactgoals=RC("🎯 Total de buts",[["0","",val(0.1)],["1","",val(0.18)],["2","",val(0.22)],["3","",val(0.2)],["4+","",val(0.3)]])
+  O.multigoals=RC("🎲 Multigoals",[["0-1","",val(0.28)],["2-3","",val(0.37)],["4+","",val(0.35)]])
+  O.winboth=RC("🏆 Gagner 1+2 MT",[[h+"","",val(0.2)],[a+"","",val(0.15)]])
+  O.teamtotal=RC("📊 Total par équipe",[[h+" +1.5","",val(0.6)],[h+" -1.5","",val(0.4)],[a+" +1.5","",val(0.55)],[a+" -1.5","",val(0.45)]])
+  O.teamoe=RC("🔢 Pair/Impair par équipe",[[h+" Pair","",val(0.5)],[h+" Impair","",val(0.5)],[a+" Pair","",val(0.5)],[a+" Impair","",val(0.5)]])
+  O.mlou=mlok?RC("💰 1X2 & Total",[[h+" & +"+to.over.line,"",val(P.h*0.55)],[h+" & -"+to.under.line,"",val(P.h*0.45)],[a+" & +"+to.over.line,"",val(P.a*0.55)],[a+" & -"+to.under.line,"",val(P.a*0.45)]]):RC("1X2+Tot",[[""]])
+  O.mlbts=mlok?RC("💰 1X2 & BTS",[[h+" & GG","",val(P.h*P.a*1.5)],[h+" & NG","",val(P.h*(1-P.a*1.5))],[a+" & GG","",val(P.a*P.h*1.5)],[a+" & NG","",val(P.a*(1-P.h*1.5))]]):RC("1X2+BTS",[[""]])
+  O.btsou=ouok?RC("⚽ BTS & Total",[["GG & +"+to.over.line,"",val(0.35)],["GG & -"+to.under.line,"",val(0.15)],["NG & +"+to.over.line,"",val(0.3)],["NG & -"+to.under.line,"",val(0.2)]]):RC("BTS+Tot",[[""]])
+  O.draworbts=RC("Nul ou BTS",[["Nul ou GG","",val(P.x+P.h*P.a*1.5)],["Nul ou NG","",val(P.x+1-P.h*P.a*1.5)]])
+  O.drawou=ouok?RC("Nul & Total",[["Nul & +"+to.over.line,"",val(P.x*0.4)],["Nul & -"+to.under.line,"",val(P.x*0.4)]]):RC("Nul+Tot",[[""]])
+  O.half1goal=RC("⚽ But en 1re MT ?",[["Oui","",val(0.7)],["Non","",val(0.3)]])
+  O.half2goal=RC("⚽ But en 2e MT ?",[["Oui","",val(0.8)],["Non","",val(0.2)]])
+  O.bothhalfbts=RC("⚽ BTS en 1re+2e MT",[["Oui","GG",val(0.25)],["Non","NG",val(0.75)]])
+  return O
+}
+
+function SW(i,O){
+  if(i===MT)return;MT=i
+  const o=O||GO;if(o)GO=o
+  document.querySelectorAll("#mts .mtab").forEach((e,j)=>e.className="mtab"+(j===i?" on":""))
+  const mko=GO[MK[i][0]]
+  document.getElementById("mmkt").innerHTML=mko||'<div class="em">Indisponible</div>'
+}
+
+function CM(){document.getElementById("modal").classList.remove("on")}
+
+async function OM(id){
+  MI=id;const m=M.find(x=>x.id===id);if(!m)return
+  const h=m.homeTeam||"?",a=m.awayTeam||"?"
+  const s=m.homeScore!==""&&m.awayScore!==""?m.homeScore+"-"+m.awayScore:""
+  let badge=m.status==="live"?'<span class="lb">EN DIRECT</span>':''
+  let body='<div class="mh2">'+h+badge+(s?'<span class="msc">'+s+'</span>':'')+'<span style="display:block;margin:2px 0">'+a+'</span></div><div class="msub"><span class="sp">'+se(sp(m))+'</span> '+(m.competition||"").slice(0,40)+"</div>"
+  body+="<div class='mts' id='mts'>"
+  for(let i=0;i<MK.length;i++){
+    var locked=m.status==="live"&&i>0
+    body+='<span class="mtab'+(i===0?" on":"")+(locked?" lkd":"")+'"'+(locked?'':(' onclick="SW('+i+')"'))+'>'+(locked?'&#x1f512; ':'')+MK[i][1]+"</span>"
+  }
+  body+='</div><div id="mmkt"></div>'
+  document.getElementById("mb").innerHTML=body
+  document.getElementById("modal").classList.add("on")
+  try{
+    const r=await F(A+"/matches/"+id+"/markets"),d=await r.json()
+    const od=d.success?d.data:{moneyline:{},spread:{},total:{}}
+    if(!od.moneyline.home&&!od.moneyline.away){
+      document.getElementById("mmkt").innerHTML='<div class="em">Pas de cotes pour ce match</div>';MT=-1;return
+    }
+    const O=GM(m,od,h,a);MT=-1;SW(0,O)
+  }catch(e){
+    document.getElementById("mmkt").innerHTML='<div class="em">Erreur</div>'
+  }
+}
+
+function RS(){
+  R()
+}
+
+function FL(){
+  const a=document.getElementById("spt").value,b=document.getElementById("src").value,c=document.getElementById("st").value,d=document.getElementById("q").value.toLowerCase().trim(),n=document.getElementById("nocotes").value
+  return M.filter(m=>{
+    if(a&&sp(m)!==a)return false
+    if(b&&m.source!==b)return false
+    if(c&&m.status!==c)return false
+    if(n==="1"&&!m.odds1&&!m.odds2&&!m.spread_home_line&&!m.over_line)return false
+    if(d&&(m.homeTeam+" "+m.awayTeam+" "+(m.competition||"")).toLowerCase().indexOf(d)<0)return false
+    return true
+  })
+}
+
+function R(){
+  const f=FL()
+  const vt=document.getElementById("viewType").value
+  document.getElementById("cnt")&&(document.getElementById("cnt").textContent=f.length+" matchs")
+  document.getElementById("g").innerHTML=f.map(m=>{
+    const s=m.homeScore!==""&&m.awayScore!==""?m.homeScore+"-"+m.awayScore:""
+    let mb=""
+    if(m.odds1||m.odds2)mb+="<span>ML</span>"
+    if(m.spread_home_line)mb+="<span>SP</span>"
+    if(m.over_line)mb+="<span>O/U</span>"
+                let o=""
+    if(m.status==="live"){
+      if(m.odds1)o+='<span class="op price-'+(m.odds1>=3?"g":m.odds1>=1.8?"b":m.odds1>=1.5?"y":"r")+'">'+m.odds1+"</span>"
+      if(m.oddsX)o+='<span class="op price-n">N'+m.oddsX+"</span>"
+      if(m.odds2)o+='<span class="op price-'+(m.odds2>=3?"g":m.odds2>=1.8?"b":m.odds2>=1.5?"y":"r")+'">'+m.odds2+"</span>"
+    }else{
+      if(m.odds1)o+='<span class="op price-'+(m.odds1>=3?"g":m.odds1>=1.8?"b":m.odds1>=1.5?"y":"r")+'">'+m.odds1+"</span>"
+      if(m.oddsX)o+='<span class="op price-n">N'+m.oddsX+"</span>"
+      if(m.odds2)o+='<span class="op price-'+(m.odds2>=3?"g":m.odds2>=1.8?"b":m.odds2>=1.5?"y":"r")+'">'+m.odds2+"</span>"
+    }
+    if(m.status==="live")o+='<span class="olive">LIVE</span>' 
+    const liveClass=m.status==="live"?' style="border-left:3px solid #ff5252"':''
+    return'<div class="c" onclick="OM(\''+m.id+'\')"'+liveClass+'><div class="t"><span class="h">'+(m.homeTeam||"?")+"</span>"+(s?'<span class="sc">'+s+"</span>":"")+'<span class="aw">'+(m.awayTeam||"?")+'</span></div><div class="m"><span class="sp">'+se(sp(m))+'</span> '+(m.competition||"").slice(0,28)+'<span class="src">'+m.source+"</span></div>"+(mb?'<div class="mb">'+mb+"</div>":"")+(o?'<div class="or">'+o+"</div>":"")+"</div>"
+  }).join("")
+}
+
+async function L(){
+  try{
+    const r=await F(A+"/matches"),d=await r.json()
+    M=d.data||[]
+    const r2=await F(A+"/results?limit=10"),d2=await r2.json()
+    if(d2.data)M=M.concat(d2.data)
+    const sps=[...new Set(M.map(m=>sp(m)))].sort()
+    const srs=[...new Set(M.map(m=>m.source).filter(Boolean))]
+    document.getElementById("spt").innerHTML='<option value="">Tous les sports</option>'+sps.map(s=>'<option value="'+s+'">'+s+"</option>").join("")
+    document.getElementById("src").innerHTML='<option value="">Toutes les sources</option>'+srs.map(s=>'<option value="'+s+'">'+s+"</option>").join("")
+    R()
+    const t=M.length,l=M.filter(m=>m.homeScore||m.awayScore).length
+    const w=M.filter(m=>m.odds1||m.spread_home_line||m.over_line).length
+    const live=M.filter(m=>m.status==="live").length
+    document.getElementById("statsBar").innerHTML=
+      '<div class="stat-pill"><span class="num">'+t+'</span> <span class="lbl">matchs</span></div>'+
+      '<div class="stat-pill live"><span class="num">'+live+'</span> <span class="lbl">en direct</span></div>'+
+      '<div class="stat-pill"><span class="num">'+sps.length+'</span> <span class="lbl">sports</span></div>'+
+      '<div class="stat-pill"><span class="num">'+srs.length+'</span> <span class="lbl">sources</span></div>'+
+      '<div class="stat-pill"><span class="num">'+w+'</span> <span class="lbl">avec cotes</span></div>'+
+      '<div class="stat-pill"><span class="num">'+l+'</span> <span class="lbl">terminés</span></div>'
+    document.getElementById("tm").textContent=new Date().toLocaleTimeString()
+  }catch(e){}
+}
+
+L()
+setInterval(L,15000)
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SporTrend — API Odds Sportives en Temps Réel</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#080c18;color:#e0e6f0;overflow-x:hidden}
+.hero{background:linear-gradient(135deg,#0b1628 0%,#132044 50%,#1a2a4a 100%);padding:60px 20px 40px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(0,180,255,0.06) 0%,transparent 60%);animation:pulse 8s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.logo{font-size:28px;font-weight:800;color:#fff;margin-bottom:6px}
+.logo span{color:#00b4ff}
+.tagline{font-size:16px;color:#6a8ab6;margin-bottom:30px}
+.hero h1{font-size:28px;font-weight:700;margin-bottom:12px;position:relative;z-index:1}
+.hero h1 strong{color:#00d4ff}
+.hero p{font-size:14px;color:#8096b8;max-width:600px;margin:0 auto 25px;line-height:1.6;position:relative;z-index:1}
+.stats-row{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;position:relative;z-index:1}
+.stat-box{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px 20px;min-width:100px}
+.stat-num{font-size:24px;font-weight:700;color:#00d4ff}
+.stat-label{font-size:11px;color:#5a7a9a;margin-top:3px}
+.cta{display:inline-block;margin-top:20px;padding:10px 28px;background:linear-gradient(135deg,#00b4ff,#0066cc);color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;transition:transform .2s}
+.cta:hover{transform:translateY(-2px)}
+.section{padding:30px 16px;max-width:900px;margin:0 auto}
+.section h2{font-size:18px;font-weight:600;margin-bottom:15px;display:flex;align-items:center;gap:8px}
+.section h2 span{color:#00b4ff}
+.features{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.features{grid-template-columns:1fr}}
+.feat{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:14px}
+.feat h3{font-size:13px;font-weight:600;margin-bottom:4px;color:#00b4ff}
+.feat p{font-size:12px;color:#5a7a9a;line-height:1.4}
+.sources{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:15px 0}
+.source{border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;font-size:12px;color:#8096b8}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.plans{grid-template-columns:1fr}}
+.plan{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;text-align:center}
+.plan.pop{background:rgba(0,180,255,0.06);border-color:rgba(0,180,255,0.2)}
+.plan h3{font-size:15px;margin-bottom:4px}
+.plan .price{font-size:24px;font-weight:700;color:#00d4ff;margin:8px 0}
+.plan ul{list-style:none;font-size:12px;color:#6a8ab6;line-height:1.8}
+.plan ul li::before{content:'✓ ';color:#00d4ff}
+.plan .cta-sm{display:inline-block;margin-top:10px;padding:7px 18px;background:linear-gradient(135deg,#00b4ff,#0066cc);color:#fff;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600}
+.footer{text-align:center;padding:20px;font-size:11px;color:#3a5a7a;border-top:1px solid rgba(255,255,255,0.04)}
+.nav{display:flex;gap:12px;justify-content:center;padding:8px;position:relative;z-index:1}
+.nav a{color:#6a8ab6;text-decoration:none;font-size:12px;padding:4px 10px;border-radius:4px}
+.nav a:hover{color:#00b4ff}
+.docs-section{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:8px;padding:16px;margin-top:12px}
+.docs-section code{background:rgba(0,180,255,0.1);color:#00d4ff;padding:2px 6px;border-radius:3px;font-size:12px}
+.docs-section pre{background:#0a0e17;border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:12px;margin:8px 0;overflow-x:auto;font-size:12px;color:#8ab4d6}
+.docs-section h3{font-size:14px;margin:12px 0 6px}
+.docs-section h3:first-child{margin-top:0}
+.docs-section .param{display:flex;gap:8px;font-size:12px;padding:4px 0}
+.docs-section .param span:first-child{color:#00d4ff;min-width:100px}
+.docs-section .param span:last-child{color:#6a8ab6}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="logo">⚡ <span>Spor</span>Trend</div>
+  <div class="tagline">API de données sportives B2B</div>
+  <div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/api/v1/info">API Status</a>
+    <a href="#docs">Documentation</a>
+    <a href="#plans">Plans</a>
+    <a href="/radar">Live Radar</a>
+  </div>
+  <h1>Cotes sportives <strong>en temps réel</strong></h1>
+  <p>Agrégation multi-sources. Couverture mondiale. Disponible via API REST, WebSocket et Data Feed. Pour bookmakers, sites de paris et plateformes sportives.</p>
+  <div class="stats-row" id="stats">
+    <div class="stat-box"><div class="stat-num" id="statMatches">-</div><div class="stat-label">Matchs en direct</div></div>
+    <div class="stat-box"><div class="stat-num" id="statSources">5</div><div class="stat-label">Sources</div></div>
+    <div class="stat-box"><div class="stat-num" id="statSports">5</div><div class="stat-label">Sports</div></div>
+    <div class="stat-box"><div class="stat-num" id="statMarkets">30+</div><div class="stat-label">Marchés</div></div>
+  </div>
+  <a class="cta" href="/api/v1/matches">Essayer l'API →</a>
+</div>
+
+<div class="section">
+  <h2><span>⚡</span> Données couvertes</h2>
+  <div class="sources">
+    <span class="source">🗞️ ESPN</span>
+    <span class="source">⚽ Flashscore</span>
+    <span class="source">🎲 Unibet</span>
+    <span class="source">📊 BetExplorer</span>
+    <span class="source">🏟️ SofaScore</span>
+  </div>
+  <div class="features">
+    <div class="feat"><h3>Football</h3><p>Top ligues européennes + compétitions internationales, cotes 1X2, chances doubles, BTS, O/U</p></div>
+    <div class="feat"><h3>NBA / WNBA</h3><p>Basketball américain, Moneyline, Spread, Over/Under</p></div>
+    <div class="feat"><h3>NFL / MLB / NHL</h3><p>Football américain, baseball, hockey — tous les marchés disponibles</p></div>
+    <div class="feat"><h3>Tennis & MMA</h3><p>ATP, WTA, UFC — cotes en temps réel avec tous les marchés</p></div>
+    <div class="feat"><h3>Golf</h3><p>Tournois PGA — cotes gagnant et marchés spéciaux</p></div>
+    <div class="feat"><h3>30+ types de marchés</h3><p>1X2, DC, BTS, O/U, handicap, score exact, MT/FT, combinés, etc.</p></div>
+  </div>
+</div>
+
+<div class="section" id="docs">
+  <h2><span>📖</span> Documentation API</h2>
+  <div class="docs-section">
+    <h3>Authentification</h3>
+    <p style="font-size:12px;color:#6a8ab6">Clé API envoyée via header <code>X-API-Key</code> ou paramètre <code>?key=</code></p>
+    
+    <h3>Endpoints</h3>
+    
+    <div class="param"><span>GET /api/v1/health</span><span>Statut du service et nombre de matchs</span></div>
+    <pre>curl -H "X-API-Key: demo_key_001" http://185.182.9.199:3000/api/v1/health</pre>
+    
+    <div class="param"><span>GET /api/v1/matches</span><span>Tous les matchs avec cotes</span></div>
+    <pre>curl -H "X-API-Key: demo_key_001" http://185.182.9.199:3000/api/v1/matches?source=espn&sport=NFL&status=live</pre>
+    
+    <div class="param"><span>GET /api/v1/matches/:id/markets</span><span>30+ marchés de paris pour un match</span></div>
+    <pre>curl -H "X-API-Key: demo_key_001" http://185.182.9.199:3000/api/v1/matches/esnp_soccer_eng_1_401879301/markets</pre>
+    
+    <div class="param"><span>GET /api/v1/competitions</span><span>Compétitions disponibles</span></div>
+    <div class="param"><span>GET /api/v1/live/now</span><span>Matchs en direct uniquement</span></div>
+    <div class="param"><span>GET /api/v1/results</span><span>Résultats récents</span></div>
+    <div class="param"><span>GET /api/v1/info</span><span>Statistiques détaillées</span></div>
+    
+    <h3>Paramètres de filtrage</h3>
+    <div class="param"><span><code>?source=espn</code></span><span>Filtrer par source (espn, unibet, betexplorer, flashscore)</span></div>
+    <div class="param"><span><code>?sport=NFL</code></span><span>Filtrer par sport (Football, NFL, MLB, NBA, NHL, etc.)</span></div>
+    <div class="param"><span><code>?status=live</code></span><span>Statut (live, upcoming, finished)</span></div>
+    <div class="param"><span><code>?limit=50</code></span><span>Limiter le nombre de résultats</span></div>
+    
+    <h3>WebSocket (temps réel)</h3>
+    <pre>ws://185.182.9.199:3000/ws?key=demo_key_001</pre>
+    <p style="font-size:12px;color:#6a8ab6">Reçoit les mises à jour des matchs et cotes en temps réel</p>
+  </div>
+</div>
+
+<div class="section" id="plans">
+  <h2><span>💎</span> Plans B2B</h2>
+  <div class="plans">
+    <div class="plan">
+      <h3>Starter</h3>
+      <div class="price">Gratuit</div>
+      <ul>
+        <li>Accès API REST complet</li>
+        <li>Jusqu'à 100 requêtes/minute</li>
+        <li>5 sources de données</li>
+        <li>30+ marchés</li>
+        <li>Dashboard inclus</li>
+      </ul>
+      <a class="cta-sm" href="/api/v1/matches">Essayer</a>
+    </div>
+    <div class="plan pop">
+      <h3>🔥 Pro</h3>
+      <div class="price">Sur devis</div>
+      <ul>
+        <li>Requêtes illimitées</li>
+        <li>WebSocket temps réel</li>
+        <li>Historique PostgreSQL</li>
+        <li>API dédiée</li>
+        <li>SLA 99.9%</li>
+        <li>Support prioritaire</li>
+      </ul>
+      <a class="cta-sm" href="mailto:afrique2info@gmail.com">Nous contacter</a>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  SporTrend API © 2026 — <a href="mailto:afrique2info@gmail.com" style="color:#5a7a9a">Contact</a>
+  — Propulsé par odds-aggregator v2.0
+</div>
+
+<script>
+fetch('/api/v1/info').then(r=>r.json()).then(d=>{
+  if(d.success){
+    const data=d.data;
+    document.getElementById('statMatches').textContent=data.totalMatches||'-';
+    const sports=data.matchesBySport?Object.keys(data.matchesBySport).length:'-';
+    document.getElementById('statSports').textContent=sports;
+  }
+}).catch(()=>{});
+</script>
+</body>
+</html>

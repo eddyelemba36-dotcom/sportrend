@@ -1,0 +1,28 @@
+{
+  "name": "odds-aggregator",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "gateway",
+    "services/live",
+    "services/odds",
+    "services/match-events",
+    "services/statistics",
+    "services/settlement",
+    "connectors"
+  ],
+  "scripts": {
+    "build": "npm run build:shared && npm run build:services && npm run build:gateway && npm run build:connectors",
+    "build:shared": "cd shared && npm run build",
+    "build:services": "cd services/live && npm run build && cd ../odds && npm run build && cd ../match-events && npm run build && cd ../statistics && npm run build && cd ../settlement && npm run build",
+    "build:gateway": "cd gateway && npm run build",
+    "build:connectors": "cd connectors && npm run build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "dev": "concurrently \"cd shared && npm run watch\" \"cd gateway && npm run start:dev\" \"cd services/live && npm run start:dev\" \"cd services/odds && npm run start:dev\" \"cd services/match-events && npm run start:dev\" \"cd services/statistics && npm run start:dev\" \"cd services/settlement && npm run start:dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0",
+    "typescript": "^5.3.0"
+  }
+}

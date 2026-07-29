@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Odds Aggregator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0e1626;color:#e0e6f0}
+.header{background:#0a0e17;border-bottom:1px solid #1e2a45;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:18px;color:#00d4ff}
+.stats{display:flex;gap:12px;padding:8px 16px;background:#0c1220;font-size:12px;color:#8892a6;flex-wrap:wrap}
+.f{display:flex;gap:8px;padding:8px 16px;flex-wrap:wrap;background:#0c1220;border-bottom:1px solid #1e2a45}
+.f select,.f input{background:#131a2b;color:#e0e6f0;border:1px solid #1e2a45;border-radius:6px;padding:6px 10px;font-size:12px;outline:none}
+#q{flex:1;min-width:150px}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px;padding:8px;max-height:calc(100vh-130px);overflow-y:auto}
+.c{background:#131a2b;border:1px solid #1e2a45;border-radius:8px;padding:10px;cursor:pointer;transition:.15s}
+.c:hover{border-color:#3a5a8c;background:#182235}
+.c .t{display:flex;justify-content:space-between;align-items:center;font-size:13px;gap:8px}
+.c .h{flex:1}.c .aw{flex:1;text-align:right}.c .sc{font-weight:700;color:#ffd740;font-size:15px;min-width:40px;text-align:center}
+.c .m{font-size:10px;color:#5a6a82;margin-top:3px;display:flex;gap:6px;flex-wrap:wrap}
+.c .src{background:#00d4ff22;color:#00d4ff;padding:1px 5px;border-radius:3px;font-size:9px}
+.c .or{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.c .op{background:#0a1a2e;border:1px solid #1a3050;border-radius:4px;padding:2px 6px;font-size:10px;color:#4fc3f7}
+.c .mb{display:flex;gap:3px;margin-top:2px}
+.c .mb span{font-size:8px;padding:1px 4px;border-radius:3px;background:#1a2a44;color:#6a8aaa}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:1000;justify-content:center;align-items:center}
+.mo.on{display:flex}
+.mm{background:#0e1626;border:1px solid #2a3a55;border-radius:12px;width:94%;max-width:440px;max-height:92vh;overflow-y:auto;padding:12px 10px 16px;position:relative;animation:su .25s ease}
+@keyframes su{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mc{position:absolute;top:8px;right:10px;background:none;border:none;color:#5a6a82;font-size:20px;cursor:pointer;z-index:10}
+.mc:hover{color:#fff}.mh2{font-size:14px;color:#fff;text-align:center}.msub{text-align:center;font-size:10px;color:#5a6a82;margin-bottom:4px}
+.msc{text-align:center;font-size:20px;font-weight:700;color:#ffd740;margin:2px 0}
+.mts{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;justify-content:center;max-height:180px;overflow-y:auto}
+.mtab{background:#131a2b;border:1px solid #1e2a45;padding:3px 7px;border-radius:5px;font-size:9px;cursor:pointer;color:#8892a6;transition:.15s;white-space:nowrap}
+.mtab:hover{border-color:#3a5a8c;color:#e0e6f0}.mtab.on{background:#00d4ff15;border-color:#00d4ff66;color:#00d4ff}
+.mkt{display:none}.mkt.on{display:block}
+.mcap{background:#131a2b;border-radius:7px;margin-bottom:4px;padding:6px 8px}
+.mcap h4{font-size:10px;color:#6a8aaa;margin-bottom:3px;font-weight:400}
+.mr{display:flex;align-items:center;padding:3px 0;border-bottom:1px solid #1a2640;font-size:11px}
+.mr:last-child{border-bottom:none}.ml{flex:1;color:#8892a6}.mv{min-width:40px;text-align:center;color:#8892a6;font-size:10px}
+.md{min-width:40px;text-align:right;font-weight:600;font-size:12px}
+.md.c1{color:#4fc3f7}.md.c2{color:#69f0ae}.md.c3{color:#ffd740}.md.c4{color:#ff8a80}
+.hc{color:#69f0ae}.ac{color:#ff5252}.em{text-align:center;padding:15px;color:#4a5a72;font-size:12px}
+#cnt{color:#4a5a72;font-size:11px;display:flex;align-items:center}
+</style></head>
+<body>
+<div class="header"><h1>Odds Aggregator</h1><span id="tm" style="font-size:11px;color:#4a5a72"></span></div>
+<div class="stats" id="stb"></div>
+<div class="f">
+<select id="spt"><option value="">Sports</option></select>
+<select id="src"><option value="">Sources</option></select>
+<select id="st"><option value="">Tous</option><option value="live">Live</option><option value="upcoming">A venir</option></select>
+<input id="q" placeholder="Rechercher..." oninput="R()"><span id="cnt"></span>
+</div>
+<div class="g" id="g"></div>
+<div class="mo" onclick="if(event.target===this)CM()" id="modal"><div class="mm"><button class="mc" onclick="CM()">X</button><div id="mb"></div></div></div>
+<script>
+const A=location.origin+"/api/v1",K="demo_key_001",F=u=>fetch(u,{headers:{"X-API-Key":K}});
+let M=[],MI=null,MT=0;
+
+function sp(m){const c=(m.competition||"").toLowerCase();return c.includes("nfl")?"NFL":c.includes("mlb")?"MLB":c.includes("nhl")?"NHL":c.includes("nba")?"NBA":c.includes("wnba")?"WNBA":c.includes("ufc")?"UFC":c.includes("pga")?"PGA":c.includes("atp")?"ATP":c.includes("wta")?"WTA":"Football"}
+const SE={Football:"⚽",NFL:"🏈",MLB:"⚾",NHL:"🏒",NBA:"🏀",WNBA:"🏀",UFC:"🥊",PGA:"⛳",ATP:"🎾",WTA:"🎾"};
+const se=s=>SE[s]||"⚽";
+const co=v=>{const o=parseFloat(v);return isNaN(o)?"":o>=5?"c1":o>=3?"c2":o>=1.8?"c3":"c4"};
+const val=p=>p&&p>0&&p<=1?(1/p).toFixed(2):"";
+
+async function L(){try{
+const r=await F(A+"/matches"),d=await r.json();M=d.data||[];
+const r2=await F(A+"/results?limit=10"),d2=await r2.json();if(d2.data)M=M.concat(d2.data);
+const sps=[...new Set(M.map(m=>sp(m)))].sort();
+const srs=[...new Set(M.map(m=>m.source).filter(Boolean))];
+document.getElementById("spt").innerHTML='<option value="">Sports</option>'+sps.map(s=>'<option value="'+s+'">'+se(s)+" "+s+"</option>").join("");
+document.getElementById("src").innerHTML='<option value="">Sources</option>'+srs.map(s=>'<option value="'+s+'">'+s+"</option>").join("");
+R();const t=M.length,l=M.filter(m=>m.homeScore||m.awayScore).length;
+const u=M.filter(m=>!m.homeScore&&!m.awayScore&&m.status!=="finished").length;
+const w=M.filter(m=>m.odds1||m.spread_home_line||m.over_line).length;
+document.getElementById("stb").innerHTML="📊 "+t+"  🔴 "+l+" live  ⏳ "+u+" a venir  💰 "+w+" cotes";
+document.getElementById("tm").textContent="⏱️ "+new Date().toLocaleTimeString("fr-FR");
+}catch(e){}}
+
+function FL(){const a=document.getElementById("spt").value,b=document.getElementById("src").value,c=document.getElementById("st").value,d=document.getElementById("q").value.toLowerCase().trim();
+return M.filter(m=>{if(a&&sp(m)!==a)return false;if(b&&m.source!==b)return false;if(c&&m.status!==c)return false;if(d&&(m.homeTeam+" "+m.awayTeam+" "+(m.competition||"")).toLowerCase().indexOf(d)<0)return false;return true})}
+
+function R(){const f=FL();document.getElementById("cnt").textContent=f.length+" matchs";
+document.getElementById("g").innerHTML=f.map(m=>{const s=m.homeScore!==""&&m.awayScore!==""?m.homeScore+"-"+m.awayScore:"";let mb="";if(m.odds1||m.odds2)mb+="<span>ML</span>";if(m.spread_home_line)mb+="<span>SP</span>";if(m.over_line)mb+="<span>O/U</span>";let o="";if(m.odds1)o+='<span class="op">'+m.odds1+"</span>";if(m.oddsX)o+='<span class="op">N'+m.oddsX+"</span>";if(m.odds2)o+='<span class="op">'+m.odds2+"</span>";
+return'<div class="c" onclick="OM(\''+m.id+'\')"><div class="t"><span class="h">'+(m.homeTeam||"?")+"</span>"+(s?'<span class="sc">'+s+"</span>":"")+'<span class="aw">'+(m.awayTeam||"?")+'</span></div><div class="m"><span>'+se(sp(m))+" "+(m.competition||"").slice(0,28)+'</span><span class="src">'+m.source+"</span></div>"+(mb?'<div class="mb">'+mb+"</div>":"")+(o?'<div class="or">'+o+"</div>":"")+"</div>"}).join("")}
+
+// Markets
+const MK=[["ml","💰 1X2"],["ou","📈 +/- Buts"],["dc","🔄 DC"],["bt","⚽ BTS"],["ht12","🕐 MT 1X2"],["hml","🕐 MT DC"],["htbts","🕐 MT BTS"],["spread","📊 Hdp"],["dnb","🤝 DNB"],["hte1x2","🕐 Hdp MT"],["oe","🔢 P/I"],["exact","🎯 Score"],["2ht1x2","🕑 2e 1X2"],["2htdc","🕑 2e DC"],["2htbts","🕑 2e BTS"],["2htou","🕑 2e +/-"],["htft","🔄 MT/FT"],["win2nil","🏆 W2N"],["margins","📏 Marges"],["htscore","🕐 + buts"],["multiscore","🎲 Multi"],["cleansheet","🧤 CS"],["bothhalves","🔄 2MT"],["anyhalf","🔄 1MT"],["exactgoals","🎯 Buts"],["multigoals","🎲 MG"],["winboth","🏆 2MT"],["teamtotal","📊 Eq"],["teamoe","🔢 Eq"],["mlou","1X2+Tot"],["mlbts","1X2+BTS"],["btsou","BTS+Tot"],["dcbts","DC+BTS"],["draworbts","Nul+BTS"],["drawou","Nul+Tot"],["htdcbts","MT DC+BTS"],["htmlou","MT1X2+Tot"],["htmlbts","MT1X2+BTS"],["2htmlou","2e1X2+Tot"],["2htdcbts","2e DC+BTS"],["half1goal","⚽1re"],["half2goal","⚽2e"],["bothhalfbts","⚽2MT/BTS"]];
+
+function PP(o1,oX,o2){let h=o1?1/parseFloat(o1):0,x=oX?1/parseFloat(oX):0,a=o2?1/parseFloat(o2):0;const s=h+x+a;if(s>0){h/=s;x/=s;a/=s;}return{h,x,a}}
+
+function RC(n,r){return'<div class="mcap"><h4>'+n+"</h4>"+r.map(x=>'<div class="mr"><span class="ml">'+x[0]+"</span>"+(x[1]?'<span class="mv">'+x[1]+"</span>":"")+'<span class="md '+co(x[2])+'">'+(x[2]||"-")+"</span></div>").join("")+"</div>"}
+
+function GM(m,od,h,a){
+const o1=od.moneyline.home,oX=od.moneyline.draw,o2=od.moneyline.away;
+const sp=od.spread,to=od.total;const mlok=o1||o2,spok=sp&&sp.home&&sp.home.line,ouok=to&&to.over&&to.over.line;
+const P=PP(o1,oX,o2);const O={};
+O.ml=RC("💰 1X2",[['<span class="hc">'+h+"</span>","1",o1],(oX?["Nul","N",oX]:[]),['<span class="ac">'+a+"</span>","2",o2]].filter(x=>x.length>0));
+O.ou=ouok?RC("📈 Total +/-",[['<span style="color:#69f0ae">Plus</span>',to.over.line,to.over.odds],['<span style="color:#ff5252">Moins</span>',to.under.line,to.under.odds]]):RC("📈 Total",[["Pas de cotes","",""]]);
+O.dc=mlok?RC("🔄 DC",[[h+" ou Nul","1N",val(P.h+P.x)],[h+" ou "+a,"12",val(P.h+P.a)],[a+" ou Nul","N2",val(P.x+P.a)]]):RC("🔄 DC",[[""]]);
+O.bt=mlok?RC("⚽ BTS",[["Oui","GG",val(P.h*P.a*1.5)],["Non","NG",val(1-P.h*P.a*1.5)]]):RC("⚽ BTS",[[""]]);
+O.ht12=RC("🕐 MT 1X2",[['<span class="hc">'+h+"</span>","1",val(P.h*0.4+0.3)],["Nul","N",val(P.x*0.6+0.5)],['<span class="ac">'+a+"</span>","2",val(P.a*0.4+0.3)]]);
+O.hml=RC("🕐 MT DC",[[h+" ou Nul","1N",val(P.h*0.4+P.x*0.6+0.5)],[h+" ou "+a,"12",val((P.h+P.a)*0.4+0.3)],[a+" ou Nul","N2",val(P.a*0.4+P.x*0.6+0.5)]]);
+O.htbts=RC("🕐 MT BTS",[["Oui","GG",val(P.h*P.a*0.6)],["Non","NG",val(1-P.h*P.a*0.6)]]);
+O.spread=spok?RC("📊 Handicap",[['<span class="hc">'+h+"</span>",sp.home.line,sp.home.odds],['<span class="ac">'+a+"</span>",sp.away.line,sp.away.odds]]):RC("📊 Handicap",[[""]]);
+O.dnb=mlok?RC("🤝 DNB",[['<span class="hc">'+h+"</span>","",val(P.h/(P.h+P.a))],['<span class="ac">'+a+"</span>","",val(P.a/(P.h+P.a))]]):RC("🤝 DNB",[[""]]);
+O.hte1x2=RC("🕐 MT Hdp (0)",[['<span class="hc">'+h+"</span>","",val(P.h*0.4+0.3)],["Nul","",val(P.x*0.6+0.5)],['<span class="ac">'+a+"</span>","",val(P.a*0.4+0.3)]]);
+O.oe=RC("🔢 Pair/Impair",[["Pair","","1.85"],["Impair","","1.85"]]);
+O.exact=RC("🎯 Score exact",[["0-0","","8.00"],["1-0","","7.00"],["2-0","","9.00"],["2-1","","8.00"],["1-1","","6.50"],["0-1","","7.50"],["0-2","","10.00"],["1-2","","9.00"],["Autre","","5.00"]]);
+O["2ht1x2"]=RC("🕑 2e MT 1X2",[['<span class="hc">'+h+"</span>","1",val(P.h*0.4+0.3)],["Nul","N",val(P.x*0.35+0.4)],['<span class="ac">'+a+"</span>","2",val(P.a*0.4+0.3)]]);
+O["2htdc"]=RC("🕑 2e MT DC",[[h+" ou Nul","1N",val(P.h*0.4+P.x*0.35+0.4)],[h+" ou "+a,"12",val((P.h+P.a)*0.4+0.3)],[a+" ou Nul","N2",val(P.a*0.4+P.x*0.35+0.4)]]);
+O["2htbts"]=RC("🕑 2e MT BTS",[["Oui","GG",val(P.h*P.a*0.5)],["Non","NG",val(1-P.h*P.a*0.5)]]);
+O["2htou"]=RC("🕑 2e MT +/-",[['<span style="color:#69f0ae">+1.5</span>',"O1.5","2.10"],['<span style="color:#ff5252">-1.5</span>',"U1.5","1.70"]]);
+O.htft=mlok?RC("🔄 MT/FT",[[h+"/"+h,"1/1",val(P.h*(P.h*0.4+0.3))],["Nul/"+h,"N/1","4.00"],[a+"/"+a,"2/2",val(P.a*(P.a*0.4+0.3))],["Nul/"+a,"N/2","5.00"],[h+"/Nul","1/N","12.00"],[a+"/Nul","2/N","15.00"],["Nul/Nul","N/N","5.00"]]):RC("🔄 MT/FT",[[""]]);
+O.win2nil=mlok?RC("🏆 Win to Nil",[[h+" sans enc.","1-0","5.00"],[a+" sans enc.","0-1","6.00"]]):RC("🏆 W2N",[[""]]);
+O.margins=mlok?RC("📏 Marges",[[h+" par 1","","4.00"],[h+" par 2+","","5.50"],[a+" par 1","","4.50"],[a+" par 2+","","6.00"]]):RC("📏 Marges",[[""]]);
+O.htscore=RC("🕐 + de buts",[["1re MT","","3.50"],["2e MT","","2.50"],["Egal","","3.00"]]);
+O.multiscore=RC("🎲 Multiscores",[["1-0/2-0/2-1","","2.50"],["0-0/1-1/0-1","","3.00"],["3-0/3-1/4-0","","5.00"]]);
+O.cleansheet=mlok?RC("🧤 CS",[[h+" CS","","3.50"],[a+" CS","","4.00"]]):RC("🧤 CS",[[""]]);
+O.bothhalves=RC("🔄 Marquer 2 MT",[[h+" 2 MT","","4.50"],[a+" 2 MT","","5.00"]]);
+O.anyhalf=mlok?RC("🔄 Gagner 1 MT",[[h+" >=1 MT","","2.50"],[a+" >=1 MT","","3.00"]]):RC("🔄 Gagner 1 MT",[[""]]);
+O.exactgoals=RC("🎯 Buts exacts",[["0","","8.00"],["1","","5.00"],["2","","3.50"],["3","","4.00"],["4+","","3.00"]]);
+O.multigoals=RC("🎲 Multigoals",[["0-1","","3.50"],["2-3","","2.00"],["4+","","4.00"]]);
+O.winboth=mlok?RC("🏆 Gagner 2 MT",[[h+" 2 MT","","6.00"],[a+" 2 MT","","7.50"]]):RC("🏆 Gagner 2 MT",[[""]]);
+O.teamtotal=mlok?RC("📊 "+h+" buts",[["+1.5","","2.50"],["-1.5","","1.60"]]):RC("📊 "+h+" buts",[[""]]);
+O.teamoe=RC("🔢 "+h+" P/I",[[h+" Pair","","1.85"],[h+" Impair","","1.85"]]);
+O.mlou=(mlok&&ouok)?RC("1X2 + Total",[[h+" +"+to.over.line,"","3.50"],[h+" -"+to.over.line,"","3.80"],[a+" +"+to.over.line,"","4.00"],[a+" -"+to.over.line,"","4.50"]]):RC("1X2+Total",[[""]]);
+O.mlbts=mlok?RC("1X2 + BTS",[[h+" + GG","","4.50"],[a+" + GG","","5.00"],[h+" + NG","","3.00"],[a+" + NG","","3.50"]]):RC("1X2+BTS",[[""]]);
+O.btsou=ouok?RC("BTS + Total",[["GG +"+to.over.line,"","3.50"],["GG -"+to.over.line,"","4.00"],["NG +"+to.over.line,"","5.00"],["NG -"+to.over.line,"","2.50"]]):RC("BTS+Total",[[""]]);
+O.dcbts=mlok?RC("DC + BTS",[[h+" ou Nul + GG","","3.00"],[h+" ou Nul + NG","","2.50"],[a+" ou Nul + GG","","3.50"],[a+" ou Nul + NG","","2.80"]]):RC("DC+BTS",[[""]]);
+O.draworbts=mlok?RC("Nul + BTS",[["Nul ou GG","","2.50"],["Nul ou NG","","3.00"]]):RC("Nul+BTS",[[""]]);
+O.drawou=ouok?RC("Nul + Total",[["Nul +"+to.over.line,"","6.00"],["Nul -"+to.over.line,"","4.00"]]):RC("Nul+Total",[[""]]);
+O.half1goal=RC("⚽ But 1re MT",[["Oui","","1.40"],["Non","","2.80"]]);
+O.half2goal=RC("⚽ But 2e MT",[["Oui","","1.35"],["Non","","3.00"]]);
+O.bothhalfbts=RC("⚽ BTS 2 MT",[["Oui","","8.00"],["Non","","1.15"]]);
+O.htm1ou=ouok?RC("MT 1X2 + Total",[[h+" + temps","","4.00"],[a+" + temps","","4.50"]]):RC("MT1X2+Total",[[""]]);
+O.htm1bts=mlok?RC("MT 1X2 + BTS",[[h+" + GG MT","","5.00"],[a+" + GG MT","","6.00"]]):RC("MT1X2+BTS",[[""]]);
+O.htdcbts=mlok?RC("MT DC + BTS",[[h+" Nul + GG MT","","4.00"],[a+" Nul + GG MT","","5.00"]]):RC("MT DC+BTS",[[""]]);
+O["2htdcbts"]=RC("2e DC + BTS",[["Oui","","5.00"],["Non","","1.30"]]);
+return O}
+
+async function OM(id){
+MI=id;const m=M.find(x=>x.id===id);if(!m)return;
+const h=m.homeTeam||"?",a=m.awayTeam||"?";
+const s=m.homeScore!==""&&m.awayScore!==""?m.homeScore+"-"+m.awayScore:"";
+let body='<div class="mh2">'+h+(s?'<span class="msc">'+s+'</span>':'')+'<span style="display:block;margin:2px 0">'+a+'</span></div><div class="msub">'+se(sp(m))+" "+(m.competition||"").slice(0,40)+"</div><div class='mts' id='mts'>";
+for(let i=0;i<MK.length;i++)body+='<span class="mtab'+(i===0?" on":"")+'" onclick="SW('+i+')">'+MK[i][1]+"</span>";
+body+='</div><div id="mmkt"></div>';
+document.getElementById("mb").innerHTML=body;
+document.getElementById("modal").classList.add("on");
+try{const r=await F(A+"/matches/"+id+"/markets"),d=await r.json();const od=d.success?d.data:{moneyline:{},spread:{},total:{}};
+const O=GM(m,od,h,a);MT=-1;SW(0,O);}catch(e){document.getElementById("mmkt").innerHTML='<div class="em">Erreur</div>';}}
+
+let GO={};function SW(i,O){if(i===MT)return;MT=i;const o=O||GO;if(o)GO=o;document.querySelectorAll("#mts .mtab").forEach((e,j)=>e.className="mtab"+(j===i?" on":""));const mko=GO[MK[i][0]];document.getElementById("mmkt").innerHTML=mko||'<div class="em">Indisponible</div>';}
+function CM(){document.getElementById("modal").classList.remove("on");}
+L();setInterval(L,15000);
+</script></body></html>
