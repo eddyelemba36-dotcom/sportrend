@@ -353,7 +353,8 @@ ws.onmessage = (e) => {
       var data = await resp.json();
       
       if(data.success){
-        showSuccess("" + (isLogin ? "Connecte !" : "Compte cree !") + " Voici votre cle API :");
+        localStorage.setItem("sportrend_user", JSON.stringify(data.data.user));
+        window.location.href = "/dashboard";
         apiKeyDisplay.textContent = data.data.user.api_key;
         apiKeyBox.style.display = "block";
       } else {

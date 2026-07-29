@@ -6,7 +6,6 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#080c18;color:#e0e6f0;font-size:13px}
-
 /* Header */
 .user-profile{background:rgba(0,180,255,0.04);border:1px solid rgba(0,180,255,0.12);border-radius:8px;padding:10px 14px;margin:6px 12px;display:none;align-items:center;gap:12px;flex-wrap:wrap}
 .user-profile.show{display:flex}
@@ -21,13 +20,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .user-profile .api-key-box button:hover{background:rgba(0,180,255,0.2)}
 .user-profile .logout-btn{background:rgba(255,82,82,0.1);color:#ff5252;border:1px solid rgba(255,82,82,0.2);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer}
 .user-profile .logout-btn:hover{background:rgba(255,82,82,0.2)}
-
+/* Profile Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.profile-modal{background:#0e1626;border:1px solid rgba(0,180,255,0.15);border-radius:16px;width:90%;max-width:400px;padding:28px;position:relative}
+.profile-modal .close{position:absolute;top:12px;right:16px;color:#5a7a9a;font-size:22px;cursor:pointer;background:none;border:none}
+.profile-modal .close:hover{color:#fff}
+.profile-modal .big-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#00b4ff,#0066cc);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;margin:0 auto 12px}
+.profile-modal h2{text-align:center;font-size:18px;font-weight:700}
+.profile-modal .plan-badge{display:inline-block;background:rgba(0,230,118,0.1);color:#00e676;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;margin:8px auto;text-align:center}
+.profile-modal .info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px}
+.profile-modal .info-row .lbl{color:#5a7a9a}
+.profile-modal .info-row .val{color:#e0e6f0}
+.profile-modal .api-box{background:#0d1730;border:1px solid rgba(0,180,255,0.1);border-radius:8px;padding:12px;margin-top:12px}
+.profile-modal .api-box .lbl{font-size:11px;color:#5a7a9a;margin-bottom:4px}
+.profile-modal .api-box .key{font-family:monospace;font-size:13px;color:#00d4ff;font-weight:700;word-break:break-all}
+.profile-modal .api-box button{display:inline-block;margin-top:6px;padding:4px 14px;background:rgba(0,180,255,0.1);color:#00b4ff;border:1px solid rgba(0,180,255,0.2);border-radius:4px;font-size:11px;cursor:pointer}
+/* Profile Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.profile-modal{background:#0e1626;border:1px solid rgba(0,180,255,0.15);border-radius:16px;width:90%;max-width:400px;padding:28px;position:relative}
+.profile-modal .close{position:absolute;top:12px;right:16px;color:#5a7a9a;font-size:22px;cursor:pointer;background:none;border:none}
+.profile-modal .close:hover{color:#fff}
+.profile-modal .big-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#00b4ff,#0066cc);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;margin:0 auto 12px}
+.profile-modal h2{text-align:center;font-size:18px;font-weight:700}
+.profile-modal .plan-badge{display:inline-block;background:rgba(0,230,118,0.1);color:#00e676;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;margin:8px auto;text-align:center}
+.profile-modal .info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px}
+.profile-modal .info-row .lbl{color:#5a7a9a}
+.profile-modal .info-row .val{color:#e0e6f0}
+.profile-modal .api-box{background:#0d1730;border:1px solid rgba(0,180,255,0.1);border-radius:8px;padding:12px;margin-top:12px}
+.profile-modal .api-box .lbl{font-size:11px;color:#5a7a9a;margin-bottom:4px}
+.profile-modal .api-box .key{font-family:monospace;font-size:13px;color:#00d4ff;font-weight:700;word-break:break-all}
+.profile-modal .api-box button{display:inline-block;margin-top:6px;padding:4px 14px;background:rgba(0,180,255,0.1);color:#00b4ff;border:1px solid rgba(0,180,255,0.2);border-radius:4px;font-size:11px;cursor:pointer}
 .topbar{background:linear-gradient(135deg,#0b1628,#132044);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,0.04)}
 .logo{font-size:16px;font-weight:700}
 .logo span{color:#00b4ff}
 .topbar a{color:#6a8ab6;text-decoration:none;font-size:12px;padding:4px 10px;border-radius:4px}
 .topbar a:hover{color:#00d4ff;background:rgba(0,180,255,0.08)}
-
 /* Stats bar */
 .stats-bar{display:flex;gap:6px;padding:8px 12px;flex-wrap:wrap;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.04)}
 .stat-pill{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:6px;padding:4px 10px;font-size:11px;display:flex;align-items:center;gap:4px}
@@ -36,7 +65,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .stat-pill.live{border-color:rgba(255,82,82,0.3)}
 .stat-pill.live .num{color:#ff5252;animation:blink 2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.6}}
-
 /* Filters */
 .filters{display:flex;gap:6px;padding:8px 12px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,0.04)}
 .filters select{background:#0e1626;border:1px solid #1a2a45;color:#e0e6f0;padding:5px 10px;border-radius:5px;font-size:12px;outline:none;cursor:pointer}
@@ -44,7 +72,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .filters input{background:#0e1626;border:1px solid #1a2a45;color:#e0e6f0;padding:5px 10px;border-radius:5px;font-size:12px;outline:none;width:140px}
 .filters input:focus{border-color:#00b4ff}
 #viewType{padding:5px 10px;border-radius:5px;font-size:12px;cursor:pointer;background:#0e1626;border:1px solid #1a2a45;color:#e0e6f0}
-
 /* Match Grid */
 #g{padding:8px;display:grid;gap:6px;grid-template-columns:1fr}
 @media(min-width:500px){#g{grid-template-columns:1fr 1fr}}
@@ -68,7 +95,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .price-y{background:rgba(255,215,0,0.12);color:#ffd740}
 .price-r{background:rgba(255,82,82,0.12);color:#ff5252}
 .price-n{background:rgba(255,255,255,0.05);color:#6a8ab6}
-
 /* Modal */
 #modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;justify-content:center;align-items:center}
 #modal.on{display:flex}
@@ -78,14 +104,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .msc{color:#ffd740;font-weight:700}
 .msub{font-size:11px;color:#5a7a9a;text-align:center;padding:0 14px 8px}
 .msub .sp{display:inline-flex;align-items:center;gap:3px}
-
 /* Market Tabs */
 .mts{display:flex;overflow-x:auto;gap:0;border-bottom:1px solid #1a2a45;padding:0;scrollbar-width:none;background:rgba(255,255,255,0.01)}
 .mts::-webkit-scrollbar{display:none}
 .mtab{white-space:nowrap;padding:7px 12px;font-size:11px;cursor:pointer;color:#5a7a9a;border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0}
 .mtab:hover{color:#e0e6f0;background:rgba(0,180,255,0.04)}
 .mtab.on{color:#00d4ff;border-bottom-color:#00d4ff}
-
 /* Market Content */
 #mmkt{padding:10px}
 .mcap h4{font-size:12px;font-weight:600;color:#5a7a9a;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
@@ -96,10 +120,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mv{color:#4a5a72;font-size:11px;margin:0 8px}
 .md{font-weight:700;min-width:55px;text-align:right;font-size:13px}
 .em{text-align:center;padding:30px 0;color:#4a5a72;font-size:13px}
-
 /* Close */
 .close{position:absolute;top:10px;right:14px;font-size:20px;color:#4a5a72;cursor:pointer;background:none;border:none;z-index:10}
-
 @media(max-width:400px){.mtab{padding:6px 8px;font-size:10px}}
 .sp svg{vertical-align:middle;margin-right:2px}
 /* Lock overlay for live */
@@ -110,7 +132,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lb{background:#ff5252;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;margin-left:8px;vertical-align:middle;animation:blink 2s infinite}
 .lkd{opacity:0.5;cursor:not-allowed!important;filter:grayscale(0.5)}
 .olive{background:#ff5252;color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;animation:blink 2s infinite;margin-left:auto}
-
 .op.lock{background:rgba(255,255,255,0.05);color:#f44;font-size:10px;cursor:not-allowed;letter-spacing:1px}
 </style>
 <div class="user-profile" id="userProfile">
@@ -125,21 +146,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <button class="logout-btn" onclick="localStorage.removeItem("sportrend_user");window.location.href="/"">Deconnexion</button>
 </div>
-
 </head>
 <body>
-
 <div class="topbar">
   <div class="logo">⚡ <span>Spor</span>Trend</div>
   <div>
-    <a href="/">Accueil</a>
+    <a href="#" id="profileBtn" onclick="openProfile()">Mon Profil</a>
     <a href="/radar">Radar</a>
     <span style="color:#3a5a7a;font-size:11px" id="tm"></span>
   </div>
 </div>
-
 <div class="stats-bar" id="statsBar"></div>
-
 <div class="filters">
   <select id="spt"><option value="">Tous les sports</option></select>
   <select id="nocotes" onchange="G()"><option value="">Avec/sans cotes</option><option value="1">Avec cotes</option></select>
@@ -148,19 +165,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <input id="q" placeholder="🔍 Rechercher..." oninput="RS()">
   <select id="viewType"><option value="grid">Grille</option><option value="list">Liste</option></select>
 </div>
-
 <div id="g"></div>
-
 <div id="modal" onclick="if(event.target===this)CM()">
   <div id="mb">
     <button class="close" onclick="CM()">✕</button>
   </div>
 </div>
-
 <script>/* v7 */
+function openProfile(){
+  var su=JSON.parse(localStorage.getItem("sportrend_user")||"null");
+  if(!su) return;
+  var a=su.name.charAt(0).toUpperCase();
+  document.getElementById("pmAvatar").textContent=a;
+  document.getElementById("pmName").textContent=su.name;
+  document.getElementById("pmEmail").textContent=su.email;
+  document.getElementById("pmApiKey").textContent=su.api_key;
+  document.getElementById("pmPlan").textContent=(su.plan==="trial"?"Essai gratuit 30 jours":"Payant");
+  document.getElementById("pmPlan2").textContent=(su.plan||"Trial");
+  var te=su.trial_ends?(new Date(su.trial_ends+"T00:00:00")).toLocaleDateString():"30 jours";
+  document.getElementById("pmTrial").textContent=te;
+  document.getElementById("profileModal").classList.add("show");
+}
+function closeProfile(){document.getElementById("profileModal").classList.remove("show")}
+function copyPmKey(){navigator.clipboard.writeText(document.getElementById("pmApiKey").textContent).then(()=>{document.querySelector("#profileModal .api-box button").textContent="Copie !";setTimeout(()=>{document.querySelector("#profileModal .api-box button").textContent="Copier"},2000)})}
 const A=window.location.origin+"/api/v1";const su=JSON.parse(localStorage.getItem("sportrend_user")||"null");const K=su?su.api_key:"demo_key_001"
 const F=u=>fetch(u,{headers:{"X-API-Key":K}})
-
 const SI={
 "NFL":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#013369" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="7" font-weight="bold">NFL</text></svg>',
 "MLB":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#041E42" stroke="white" stroke-width=".5"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="6" font-weight="bold">MLB</text></svg>',
@@ -178,9 +207,7 @@ const co=o=>{const v=parseFloat(o);if(!v||v<1)return"";return v>=3?"price-g":v>=
 const val=p=>p&&p>0&&p<1?Math.round(1/p*100)/100:null
 const PP=(o1,oX,o2)=>{let h=o1?1/parseFloat(o1):0,x=oX?1/parseFloat(oX):0,a=o2?1/parseFloat(o2):0;const s=h+x+a;if(s>0){h/=s;x/=s;a/=s}return{h,x,a}}
 function RC(n,r){var h='<div class="mcap"><h4>'+n+'</h4>';r.forEach(function(x){h+='<div class="mr"><span class="ml">'+x[0]+'</span>'+(x[1]?'<span class="mv">'+x[1]+'</span>':'')+'<span class="md '+co(x[2])+'">'+(x[2]||'-')+'</span></div>'});return h+'</div>'}
-
 let M=[],GO={},MI=null,MT=0
-
 const MK=[
 ["ml","💰 1X2"],["ou","📈 +/-"],["dc","🔄 DC"],["bt","⚽ BTS"],["ht12","🕐 MT"],["hml","🕐 DC"],["htbts","🕐 BTS"],
 ["spread","📊 Hdp"],["dnb","🤝 DNB"],["hte1x2","🕐 Hdp"],["oe","🔢 P/I"],["exact","🎯 Score"],["2ht1x2","🕑 2e"],
@@ -191,7 +218,6 @@ const MK=[
 ["drawou","N+Tot"],["htdcbts","MT DC+BTS"],["htmlou","MT 1X2+Tot"],["htmlbts","MT 1X2+BTS"],
 ["2htmlou","2e+Tot"],["2htdcbts","2e DC+BTS"],["half1goal","⚽1re"],["half2goal","⚽2e"],["bothhalfbts","⚽2MT/BTS"]
 ]
-
 function GM(m,od,h,a){
   const o1=od.moneyline.home,oX=od.moneyline.draw,o2=od.moneyline.away
   const sp=od.spread,to=od.total
@@ -237,7 +263,6 @@ function GM(m,od,h,a){
   O.bothhalfbts=RC("⚽ BTS en 1re+2e MT",[["Oui","GG",val(0.25)],["Non","NG",val(0.75)]])
   return O
 }
-
 function SW(i,O){
   if(i===MT)return;MT=i
   const o=O||GO;if(o)GO=o
@@ -245,9 +270,7 @@ function SW(i,O){
   const mko=GO[MK[i][0]]
   document.getElementById("mmkt").innerHTML=mko||'<div class="em">Indisponible</div>'
 }
-
 function CM(){document.getElementById("modal").classList.remove("on")}
-
 async function OM(id){
   MI=id;const m=M.find(x=>x.id===id);if(!m)return
   const h=m.homeTeam||"?",a=m.awayTeam||"?"
@@ -273,11 +296,9 @@ async function OM(id){
     document.getElementById("mmkt").innerHTML='<div class="em">Erreur</div>'
   }
 }
-
 function RS(){
   R()
 }
-
 function FL(){
   const a=document.getElementById("spt").value,b=document.getElementById("src").value,c=document.getElementById("st").value,d=document.getElementById("q").value.toLowerCase().trim(),n=document.getElementById("nocotes").value
   return M.filter(m=>{
@@ -289,7 +310,6 @@ function FL(){
     return true
   })
 }
-
 function R(){
   const f=FL()
   const vt=document.getElementById("viewType").value
@@ -315,7 +335,6 @@ function R(){
     return'<div class="c" onclick="OM(\''+m.id+'\')"'+liveClass+'><div class="t"><span class="h">'+(m.homeTeam||"?")+"</span>"+(s?'<span class="sc">'+s+"</span>":"")+'<span class="aw">'+(m.awayTeam||"?")+'</span></div><div class="m"><span class="sp">'+se(sp(m))+'</span> '+(m.competition||"").slice(0,28)+'<span class="src">'+m.source+"</span></div>"+(mb?'<div class="mb">'+mb+"</div>":"")+(o?'<div class="or">'+o+"</div>":"")+"</div>"
   }).join("")
 }
-
 async function L(){
   try{
     const r=await F(A+"/matches"),d=await r.json()
@@ -340,7 +359,6 @@ async function L(){
     document.getElementById("tm").textContent=new Date().toLocaleTimeString()
   }catch(e){}
 }
-
 L()
 setInterval(L,15000)
 </script>
