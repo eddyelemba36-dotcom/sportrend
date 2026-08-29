@@ -12,6 +12,7 @@ const { scrapeESPN } = require("./espn-api");
 const { scrapeFlashscore } = require("./espn-scrapers");
 const { scrapeAllResults } = require("./results-scraper");
 const { scrapeAll: scrapeBEMulti } = require("./betexp-multi");
+const { scrapeOpenFootball } = require("./openfootball-schedule");
 const puppeteer = require("puppeteer-extra").default;
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 puppeteer.use(StealthPlugin());
@@ -177,6 +178,13 @@ async function main() {
     log("=== Cycle " + cycle + " ===");
     
     await scrapeBEMulti();
+
+    // Calendriers saisonniers: au démarrage puis environ une fois par heure.
+    // Une panne de cette source conserve les dernières données valides dans Redis.
+    if (cycle === 1 || cycle % 120 === 0) {
+      try { await scrapeOpenFootball({ client: await getRedis() }); }
+      catch (e) { log("OpenFootball error: " + e.message.slice(0, 120)); }
+    }
     
     const espnCount = await scrapeESPN();
     if (cycle % 2 === 0) await scrapeFlashscore();
