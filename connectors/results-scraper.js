@@ -74,6 +74,7 @@ async function scrapeESPNResults() {
         await r.hSet(id, "homeScore", home.score || "0");
         await r.hSet(id, "awayScore", away.score || "0");
         await r.hSet(id, "competition", ep.sport + (comp.altGameNote ? " - " + comp.altGameNote : ""));
+        await r.hSet(id, "sport", ep.sport);
         await r.hSet(id, "status", "finished");
         await r.hSet(id, "source", "results");
         await r.hSet(id, "updatedAt", new Date().toISOString());
@@ -98,6 +99,41 @@ const RESULT_SPORTS = [
   { name: "Handball", path: "/handball/results/" },
 ];
 
+function extractBetExplorerResults() {
+  const results = [];
+  const tables = document.querySelectorAll("table.table-main");
+  for (const table of tables) {
+    let competition = "";
+    const rows = table.querySelectorAll("tr");
+    for (const row of rows) {
+      const tournament = row.querySelector(".table-main__tournament");
+      if (tournament) {
+        competition = tournament.textContent.trim();
+        continue;
+      }
+      if (!row.hasAttribute("data-dt")) continue;
+      const ttCell = row.querySelector("td.table-main__tt");
+      const resCell = row.querySelector("td.table-main__result");
+      if (!ttCell || !resCell) continue;
+      const link = ttCell.querySelector("a");
+      const teamsText = link ? link.textContent.trim() : "";
+      if (!teamsText.includes(" - ")) continue;
+      const parts = teamsText.split(" - ");
+      if (parts.length < 2) continue;
+
+      const scores = resCell.textContent.trim().match(/(\d+)\s*:\s*(\d+)/);
+      results.push({
+        home: parts[0].replace(/\*\*/g, "").trim(),
+        away: parts[1].replace(/\*\*/g, "").trim(),
+        homeScore: scores ? scores[1] : "",
+        awayScore: scores ? scores[2] : "",
+        competition
+      });
+    }
+  }
+  return results;
+}
+
 async function scrapeBetExplorerResults() {
   let browser;
   try {
@@ -118,37 +154,7 @@ async function scrapeBetExplorerResults() {
         await page.goto("https://www.betexplorer.com" + sportCfg.path, { waitUntil: "networkidle2", timeout: 15000 });
         await new Promise(r => setTimeout(r, 3000));
 
-        const results = await page.evaluate(() => {
-          const r = [];
-          const tables = document.querySelectorAll("table.table-main");
-          for (const table of tables) {
-            const tourneyEl = table.querySelector("tr.js-tournament .table-main__tournament");
-            let competition = tourneyEl ? tourneyEl.textContent.trim() : "";
-            const rows = table.querySelectorAll("tr[data-dt]");
-            for (const row of rows) {
-              const ttCell = row.querySelector("td.table-main__tt");
-              const resCell = row.querySelector("td.table-main__result");
-              if (!ttCell || !resCell) continue;
-              const link = ttCell.querySelector("a");
-              const teamsText = link ? link.textContent.trim() : "";
-              if (!teamsText.includes(" - ")) continue;
-              const parts = teamsText.split(" - ");
-              if (parts.length < 2) continue;
-              
-              const resultText = resCell.textContent.trim();
-              const scores = resultText.match(/(\d+)\s*:\s*(\d+)/);
-              
-              r.push({
-                home: parts[0].replace(/\*\*/g,"").trim(),
-                away: parts[1].replace(/\*\*/g,"").trim(),
-                homeScore: scores ? scores[1] : "",
-                awayScore: scores ? scores[2] : "",
-                competition
-              });
-            }
-          }
-          return r;
-        });
+        const results = await page.evaluate(extractBetExplorerResults);
 
         if (results.length > 0) {
           for (const m of results) {
@@ -159,6 +165,7 @@ async function scrapeBetExplorerResults() {
             await r.hSet(id, "homeScore", m.homeScore);
             await r.hSet(id, "awayScore", m.awayScore);
             await r.hSet(id, "competition", m.competition.replace(/\s*1\s*X\s*2$/,"").trim() || sportCfg.name);
+            await r.hSet(id, "sport", sportCfg.name);
             await r.hSet(id, "status", "finished");
             await r.hSet(id, "source", "results");
             await r.hSet(id, "updatedAt", new Date().toISOString());
@@ -202,7 +209,7 @@ async function scrapeAllResults() {
   return total;
 }
 
-module.exports = { scrapeAllResults };
+module.exports = { scrapeAllResults, extractBetExplorerResults };
 
 if (require.main === module) {
   (async () => {
