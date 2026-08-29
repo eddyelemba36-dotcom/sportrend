@@ -186,17 +186,19 @@ async function scrapeBetExplorerResults() {
 }
 
 async function scrapeAllResults() {
-  // Clean old results
   const r = await getRedis();
-  const oldKeys = await r.sMembers("matches:results");
-  for (const k of oldKeys) { await r.del(k); }
-  await r.del("matches:results");
-
   const be = await scrapeBetExplorerResults();
   const espn = await scrapeESPNResults();
 
+  // Ne jamais effacer les derniers résultats valides avant une collecte.
+  // Les hashes expirent seuls ; on retire seulement les références expirées.
+  const resultKeys = await r.sMembers("matches:results");
+  for (const key of resultKeys) {
+    if (!(await r.exists(key))) await r.sRem("matches:results", key);
+  }
+
   const total = await r.scard("matches:results");
-  log("Total results stored: " + total);
+  log("Total results stored: " + total + " (new: " + (be + espn) + ")");
   return total;
 }
 

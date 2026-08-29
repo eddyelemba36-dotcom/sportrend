@@ -36,10 +36,18 @@ async function getPG() {
   return pg;
 }
 
+async function getMatchKeys(r) {
+  const keys = [];
+  for await (const batch of r.scanIterator({ MATCH: "match:*", COUNT: 100 })) {
+    if (Array.isArray(batch)) keys.push(...batch);
+    else keys.push(batch);
+  }
+  return keys;
+}
+
 async function getAllMatches() {
   const r = await getRedis();
-  const keys = await r.keys("match:*");
-  const matchKeys = keys.filter(k => k.startsWith("match:"));
+  const matchKeys = await getMatchKeys(r);
   const matches = [];
   for (const key of matchKeys) {
     const data = await r.hGetAll(key);
@@ -381,7 +389,7 @@ const server = http.createServer(async (req, res) => {
     // /api/v1/live/now
     if (p === "/live/now") {
       const matches = await getAllMatches();
-      return json(res, 200, { success: true, data: matches.filter(m => m.homeScore || m.awayScore) });
+      return json(res, 200, { success: true, data: matches.filter(m => m.status === "live") });
     }
 
     // /api/v1/matches/:id/odds
@@ -397,19 +405,23 @@ const server = http.createServer(async (req, res) => {
     if (marketsMatch) {
       const m = await getMatch(marketsMatch[1]);
       if (!m) return json(res, 404, { success: false, error: "Match not found" });
-      // Use Poisson-based odds engine to generate ALL markets
+      // Le modèle Poisson actuel est calibré uniquement pour le football.
       const oddsEngine = require("./odds-engine.js");
-      const allMarkets = oddsEngine.generateAllMarkets(
+      const sport = getSportFromMatch(m);
+      const canGenerate = sport === "Football";
+      const allMarkets = canGenerate ? oddsEngine.generateAllMarkets(
         m.odds1, m.oddsX, m.odds2,
         { home: { line: m.spread_home_line, odds: m.spread_home_odds }, away: { line: m.spread_away_line, odds: m.spread_away_odds } },
         { over: { line: m.over_line, odds: m.over_odds }, under: { line: m.under_line, odds: m.under_odds } },
         m.homeTeam, m.awayTeam
-      );
+      ) : {};
       return json(res, 200, { success: true, data: {
         moneyline: { home: m.odds1 || null, away: m.odds2 || null, draw: m.oddsX || null },
         spread: { home: { line: m.spread_home_line || null, odds: m.spread_home_odds || null }, away: { line: m.spread_away_line || null, odds: m.spread_away_odds || null } },
         total: { over: { line: m.over_line || null, odds: m.over_odds || null }, under: { line: m.under_line || null, odds: m.under_odds || null } },
-        all: allMarkets
+        all: allMarkets,
+        generated: canGenerate,
+        generationReason: canGenerate ? null : `Football Poisson model disabled for ${sport}`
       }});
     }
 
@@ -540,7 +552,7 @@ setInterval(async () => {
 setInterval(async () => {
   try {
     const r = await getRedis();
-    const count = (await r.keys("match:*")).length;
+    const count = (await getMatchKeys(r)).length;
     if (count < 10 && dataBackup && dataBackup.matches && dataBackup.matches.length > 10) {
       console.warn("[WATCHDOG] Only " + count + " matches in Redis! Restoring " + dataBackup.matches.length + " from backup...");
       for (const m of dataBackup.matches) {

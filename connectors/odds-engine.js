@@ -33,14 +33,17 @@ function calcExpectedGoals(probs) {
   // Formule: basée sur la force relative des équipes
   // On utilise une approche simplifiée de Dixon-Coles
   
-  // Force dattaque relative
-  const attackStrength = Math.sqrt(probs.h / (probs.a || 0.01));
-  // Buts attendus pour chaque équipe
   const totalGoals = 2.5; // moyenne football
-  const lambdaHome = totalGoals * (probs.h / (probs.h + probs.x * 0.5 + probs.a * 0.1));
-  const lambdaAway = totalGoals * (probs.a / (probs.h * 0.1 + probs.x * 0.5 + probs.a));
-  
-  return { home: Math.max(lambdaHome, 0.2), away: Math.max(lambdaAway, 0.1), total: lambdaHome + lambdaAway };
+  const homeStrength = Math.sqrt(Math.max(probs.h, 0.001));
+  const awayStrength = Math.sqrt(Math.max(probs.a, 0.001));
+  const decisiveShare = homeStrength / (homeStrength + awayStrength);
+  // Une forte probabilité de nul rapproche les deux lambdas sans changer le total.
+  const drawWeight = Math.min(Math.max(probs.x, 0), 0.6);
+  const homeShare = decisiveShare * (1 - drawWeight) + 0.5 * drawWeight;
+  const lambdaHome = totalGoals * homeShare;
+  const lambdaAway = totalGoals - lambdaHome;
+
+  return { home: lambdaHome, away: lambdaAway, total: totalGoals };
 }
 
 // ============================================================
@@ -60,16 +63,19 @@ function factorial(n) {
 // ============================================================
 // 4. Calcul des probabilités de score exact
 // ============================================================
-function scoreProbabilities(lambdaH, lambdaA, maxGoals = 6) {
+function scoreProbabilities(lambdaH, lambdaA, maxGoals = 10) {
   const scores = {};
+  let totalProbability = 0;
   for (let i = 0; i <= maxGoals; i++) {
     for (let j = 0; j <= maxGoals; j++) {
       const prob = poisson(lambdaH, i) * poisson(lambdaA, j);
-      if (prob > 0.001) {
-        scores[`${i}-${j}`] = prob;
-      }
+      scores[`${i}-${j}`] = prob;
+      totalProbability += prob;
     }
   }
+  // La troncature Poisson perd une faible masse : renormaliser évite des
+  // marchés complémentaires dont les probabilités ne totalisent pas 100 %.
+  for (const score of Object.keys(scores)) scores[score] /= totalProbability;
   return scores;
 }
 
@@ -78,8 +84,8 @@ function scoreProbabilities(lambdaH, lambdaA, maxGoals = 6) {
 // ============================================================
 function price(prob, vig = 0.07) {
   if (!prob || prob <= 0 || prob >= 1 || !isFinite(prob)) return null;
-  // Marge bookmaker: diviser la proba par (1 + vig)
-  const adjustedProb = prob / (1 + vig);
+  // Une marge augmente la probabilité implicite et réduit donc la cote.
+  const adjustedProb = Math.min(prob * (1 + Math.max(vig, 0)), 0.999);
   const odd = 1 / adjustedProb;
   // Arrondir à 2 décimales avec paliers standard
   return roundOdd(odd);
@@ -135,9 +141,9 @@ function generateAllMarkets(o1, oX, o2, spreadData, totalData, homeTeam, awayTea
   markets.ml = {
     name: "💰 1X2",
     entries: [
-      { label: homeTeam, value: "1", odds: roundOdd(1 / stats.homeWin) },
-      { label: "Match Nul", value: "N", odds: roundOdd(1 / stats.draw) },
-      { label: awayTeam, value: "2", odds: roundOdd(1 / stats.awayWin) }
+      { label: homeTeam, value: "1", odds: price(stats.homeWin) },
+      { label: "Match Nul", value: "N", odds: price(stats.draw) },
+      { label: awayTeam, value: "2", odds: price(stats.awayWin) }
     ]
   };
   
@@ -168,20 +174,23 @@ function generateAllMarkets(o1, oX, o2, spreadData, totalData, homeTeam, awayTea
     ]
   };
   
-  // ---------- 4. Over/Under (2.5) ----------
+  // ---------- 4. Over/Under ----------
+  const parsedTotalLine = Number.parseFloat(totalData?.over?.line ?? totalData?.under?.line);
+  const totalLine = Number.isFinite(parsedTotalLine) ? parsedTotalLine : 2.5;
   let overProb = 0;
   let underProb = 0;
   for (const [score, prob] of Object.entries(scores)) {
     const total = score.split("-").reduce((s, v) => s + parseInt(v), 0);
-    if (total > 2.5) overProb += prob;
+    if (total > totalLine) overProb += prob;
     else underProb += prob;
   }
-  const totalLine = totalData && totalData.over ? parseFloat(totalData.over.line) : 2.5;
+  const providerOverOdd = Number.parseFloat(totalData?.over?.odds);
+  const providerUnderOdd = Number.parseFloat(totalData?.under?.odds);
   markets.ou = {
     name: "📈 Total de buts",
     entries: [
-      { label: `Plus de ${totalLine}`, value: `O${totalLine}`, odds: totalData && totalData.over ? parseFloat(totalData.over.odds) : price(overProb) },
-      { label: `Moins de ${totalLine}`, value: `U${totalLine}`, odds: totalData && totalData.under ? parseFloat(totalData.under.odds) : price(underProb) }
+      { label: `Plus de ${totalLine}`, value: `O${totalLine}`, odds: Number.isFinite(providerOverOdd) ? providerOverOdd : price(overProb) },
+      { label: `Moins de ${totalLine}`, value: `U${totalLine}`, odds: Number.isFinite(providerUnderOdd) ? providerUnderOdd : price(underProb) }
     ]
   };
   
@@ -587,6 +596,6 @@ function generateAllMarkets(o1, oX, o2, spreadData, totalData, homeTeam, awayTea
 // ============================================================
 // EXPORT
 // ============================================================
-module.exports = { generateAllMarkets, probsFromOdds, price, roundOdd };
+module.exports = { generateAllMarkets, probsFromOdds, calcExpectedGoals, scoreProbabilities, price, roundOdd };
 
 console.log("[OddsEngine] v2 loaded — Poisson-based market generator with 7% VIG");

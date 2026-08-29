@@ -140,7 +140,7 @@ async function scrapeDate(r, slug, label, dateStr) {
       }
     }
     
-    await r.expire(id, 3600);await r.expire(id, 3600);
+    await r.expire(id, 3600);
     count++;
   }
   return count;

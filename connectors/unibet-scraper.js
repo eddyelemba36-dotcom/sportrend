@@ -80,16 +80,7 @@ async function scrapeUnibet() {
 
     // Parse the captured data
     const data = captures[0];
-    const r = await getRedis();
-
-    // Clear old unibet matches
-    const oldKeys = await r.sMembers("matches:unibet");
-    for (const k of oldKeys) {
-      if (k.startsWith("match:ub_")) await r.del(k);
-    }
-    await r.del("matches:unibet");
-
-    let count = 0;
+    const matches = [];
     const items = data.items || {};
     for (const [key, val] of Object.entries(items)) {
       if (!val || typeof val !== "object") continue;
@@ -103,7 +94,8 @@ async function scrapeUnibet() {
       const sc = val.score || {};
       const homeScore = sc.a !== undefined ? String(sc.a) : "";
       const awayScore = sc.b !== undefined ? String(sc.b) : "";
-      const isLive = (homeScore || awayScore) && sc.period;
+      const hasScore = sc.a !== undefined && sc.b !== undefined;
+      const isLive = Boolean(hasScore && sc.period);
 
       // Find odds in market groups
       let odds1 = "", oddsX = "", odds2 = "";
@@ -129,7 +121,7 @@ async function scrapeUnibet() {
       }
 
       const id = "ub_" + homeTeam.replace(/[^a-z0-9]/gi, "_").slice(0, 25) + "_" + awayTeam.replace(/[^a-z0-9]/gi, "_").slice(0, 25);
-      await storeMatch(r, {
+      matches.push({
         id, homeTeam, awayTeam,
         homeScore, awayScore,
         competition: pdesc,
@@ -137,10 +129,27 @@ async function scrapeUnibet() {
         status: isLive ? "live" : "upcoming",
         source: "unibet",
       });
-      count++;
     }
 
-    log("Unibet: " + count + " matchs stockes (avec cotes)");
+    if (matches.length === 0) {
+      log("Unibet: payload captured but no valid matches; keeping previous Redis data");
+      return;
+    }
+
+    const r = await getRedis();
+    const oldKeys = await r.sMembers("matches:unibet");
+    // Écrire la nouvelle collecte avant de retirer les entrées obsolètes :
+    // l'API ne voit jamais un ensemble vide pendant le remplacement.
+    for (const match of matches) await storeMatch(r, match);
+    const newKeys = new Set(matches.map(match => "match:" + match.id));
+    for (const key of oldKeys) {
+      if (key.startsWith("match:ub_") && !newKeys.has(key)) {
+        await r.del(key);
+        await r.sRem("matches:unibet", key);
+      }
+    }
+
+    log("Unibet: " + matches.length + " matchs stockes (avec cotes)");
   } catch (e) {
     log("Unibet error: " + (e.message || String(e)).slice(0, 150));
   } finally {
