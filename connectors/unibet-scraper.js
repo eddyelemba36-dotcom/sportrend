@@ -38,6 +38,8 @@ async function storeMatch(r, m) {
   await r.hSet(key, "country", metadata.country);
   await r.hSet(key, "leagueId", metadata.leagueId);
   await r.hSet(key, "startTime", metadata.startTime);
+  await r.hSet(key, "date", metadata.date);
+  await r.hSet(key, "time", metadata.time);
   await r.hSet(key, "odds1", String(m.odds1 || ""));
   await r.hSet(key, "oddsX", String(m.oddsX || ""));
   await r.hSet(key, "odds2", String(m.odds2 || ""));

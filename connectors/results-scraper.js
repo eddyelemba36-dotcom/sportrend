@@ -87,6 +87,8 @@ async function scrapeESPNResults() {
         await r.hSet(id, "country", metadata.country);
         await r.hSet(id, "leagueId", metadata.leagueId);
         await r.hSet(id, "startTime", metadata.startTime);
+        await r.hSet(id, "date", metadata.date);
+        await r.hSet(id, "time", metadata.time);
         await r.hSet(id, "status", "finished");
         await r.hSet(id, "source", "results");
         await r.hSet(id, "resultProvider", "espn");
@@ -199,6 +201,8 @@ async function scrapeBetExplorerResults() {
             await r.hSet(id, "country", metadata.country);
             await r.hSet(id, "leagueId", metadata.leagueId);
             await r.hSet(id, "startTime", metadata.startTime);
+            await r.hSet(id, "date", metadata.date);
+            await r.hSet(id, "time", metadata.time);
             await r.hSet(id, "status", "finished");
             await r.hSet(id, "source", "results");
             await r.hSet(id, "resultProvider", "betexplorer");

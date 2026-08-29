@@ -41,6 +41,11 @@ function countryFromCompetition(competition) {
 
 function normalizeStartTime(value) {
   if (value === null || value === undefined || value === "") return "";
+  const commaDate = String(value).trim().match(/^(\d{1,2}),(\d{1,2}),(\d{4}),(\d{1,2}),(\d{1,2})$/);
+  if (commaDate) {
+    const [, day, month, year, hour, minute] = commaDate;
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:00.000Z`;
+  }
   const numeric = Number(value);
   const date = Number.isFinite(numeric)
     ? new Date(numeric < 1e12 ? numeric * 1000 : numeric)
@@ -52,11 +57,14 @@ function normalizeMatchMetadata({ sport, competition, country, leagueId, startTi
   const normalizedCompetition = String(competition || "").trim();
   const normalizedSport = canonicalSport(sport, normalizedCompetition);
   const normalizedCountry = String(country || "").trim() || countryFromCompetition(normalizedCompetition);
+  const normalizedStartTime = normalizeStartTime(startTime);
   return {
     sport: normalizedSport,
     country: normalizedCountry,
     leagueId: String(leagueId || "").trim() || slugify([normalizedSport, normalizedCompetition].filter(Boolean).join("-")),
-    startTime: normalizeStartTime(startTime)
+    startTime: normalizedStartTime,
+    date: normalizedStartTime ? normalizedStartTime.slice(0, 10) : "",
+    time: normalizedStartTime ? normalizedStartTime.slice(11, 16) : ""
   };
 }
 

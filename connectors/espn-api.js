@@ -118,6 +118,8 @@ async function scrapeDate(r, slug, label, dateStr) {
     await r.hSet(id, 'country', metadata.country);
     await r.hSet(id, 'leagueId', metadata.leagueId);
     await r.hSet(id, 'startTime', metadata.startTime);
+    await r.hSet(id, 'date', metadata.date);
+    await r.hSet(id, 'time', metadata.time);
     await r.hSet(id, 'status', isLive?'live':(isComplete?'finished':'upcoming'));
     await r.hSet(id, 'matchClock', st.displayClock || '');
     await r.hSet(id, 'period', String(st.period || ''));
