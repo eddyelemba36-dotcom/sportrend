@@ -9,6 +9,7 @@ const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const https = require("https");
 const { normalizeMatchMetadata } = require("./match-normalizer");
 const { registerResultCandidate } = require("./result-consensus");
+const { extractESPNResultDetails } = require("./espn-result-details");
 puppeteer.use(StealthPlugin());
 
 let redis = null;
@@ -72,6 +73,7 @@ async function scrapeESPNResults() {
           competition: ep.sport + (comp.altGameNote ? " - " + comp.altGameNote : ""),
           startTime: event.date || comp.date || ""
         });
+        const details = extractESPNResultDetails(comp, home, away);
         const homeName = (home.team ? home.team.displayName : "") || (home.athlete ? home.athlete.displayName : "");
         const awayName = (away.team ? away.team.displayName : "") || (away.athlete ? away.athlete.displayName : "");
         
@@ -88,13 +90,22 @@ async function scrapeESPNResults() {
         await r.hSet(id, "status", "finished");
         await r.hSet(id, "source", "results");
         await r.hSet(id, "resultProvider", "espn");
+        await r.hSet(id, "events", JSON.stringify(details.events));
+        await r.hSet(id, "statistics", JSON.stringify(details.statistics));
+        await r.hSet(id, "halfTimeHomeScore", String(details.halfTimeHomeScore ?? ""));
+        await r.hSet(id, "halfTimeAwayScore", String(details.halfTimeAwayScore ?? ""));
+        await r.hSet(id, "regulationHomeScore", String(details.regulationHomeScore ?? home.score ?? ""));
+        await r.hSet(id, "regulationAwayScore", String(details.regulationAwayScore ?? away.score ?? ""));
+        await r.hSet(id, "penaltyHomeScore", String(details.penaltyHomeScore ?? ""));
+        await r.hSet(id, "penaltyAwayScore", String(details.penaltyAwayScore ?? ""));
         await r.hSet(id, "updatedAt", new Date().toISOString());
         await r.sAdd("matches:results", id);
         await r.expire(id, 7200);
         await registerResultCandidate(r, {
           provider: "espn", matchKey: id, sport: metadata.sport,
           homeTeam: homeName, awayTeam: awayName, startTime: metadata.startTime,
-          homeScore: Number.parseInt(home.score, 10), awayScore: Number.parseInt(away.score, 10)
+          homeScore: details.regulationHomeScore ?? Number.parseInt(home.score, 10),
+          awayScore: details.regulationAwayScore ?? Number.parseInt(away.score, 10)
         });
         total++;
       }

@@ -376,6 +376,24 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { success: true, data: buildOfficialResult(m) });
     }
 
+    // /api/v1/matches/:id/events
+    const eventsMatch = p.match(/^\/matches\/([^\/]+)\/events$/);
+    if (eventsMatch) {
+      const m = await getMatch(eventsMatch[1]);
+      if (!m) return json(res, 404, { success: false, error: "Match not found" });
+      const result = buildOfficialResult(m);
+      return json(res, 200, { success: true, data: result.events, count: result.events.length, resultStatus: result.resultStatus });
+    }
+
+    // /api/v1/matches/:id/statistics
+    const statisticsMatch = p.match(/^\/matches\/([^\/]+)\/statistics$/);
+    if (statisticsMatch) {
+      const m = await getMatch(statisticsMatch[1]);
+      if (!m) return json(res, 404, { success: false, error: "Match not found" });
+      const result = buildOfficialResult(m);
+      return json(res, 200, { success: true, data: result.statistics, resultStatus: result.resultStatus });
+    }
+
     // /api/v1/matches/:id/settlements?market=1x2&selection=1
     const settlementMatch = p.match(/^\/matches\/([^\/]+)\/settlements$/);
     if (settlementMatch) {
