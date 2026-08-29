@@ -12,7 +12,6 @@ const { scrapeESPN } = require("./espn-api");
 const { scrapeFlashscore } = require("./espn-scrapers");
 const { scrapeAllResults } = require("./results-scraper");
 const { scrapeAll: scrapeBEMulti } = require("./betexp-multi");
-const { scrapeSofaScoreSchedule } = require("./sofascore-schedule");
 const puppeteer = require("puppeteer-extra").default;
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 puppeteer.use(StealthPlugin());
@@ -181,7 +180,7 @@ async function main() {
     
     const espnCount = await scrapeESPN();
     if (cycle % 2 === 0) await scrapeFlashscore();
-    if (cycle === 1 || cycle % 10 === 0) await scrapeSofaScoreSchedule();
+    if (cycle % 10 === 0) await scrapeSofaScore();
     if (cycle % 5 === 0) { await scrapeUnibet(); }
     if (cycle % 10 === 0) await scrapeAllResults();
 

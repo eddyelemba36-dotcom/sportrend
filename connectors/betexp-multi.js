@@ -36,9 +36,13 @@ async function scrapeAll() {
         const page = await browser.newPage();
         await page.setViewport({width:1920,height:1080});
         await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125");
-        page.setDefaultNavigationTimeout(15000);
-        await page.goto("https://www.betexplorer.com" + sport.path, {waitUntil:"networkidle2",timeout:15000});
-        await new Promise(r=>setTimeout(r, 3000));
+        page.setDefaultNavigationTimeout(45000);
+        try {
+          await page.goto("https://www.betexplorer.com" + sport.path, {waitUntil:"domcontentloaded",timeout:45000});
+        } catch (navigationError) {
+          log(sport.path + " navigation lente, analyse du contenu déjà chargé");
+        }
+        await new Promise(r=>setTimeout(r, 5000));
 
         const sportName = await page.evaluate(() => {
           const p = window.location.pathname.split("/")[1] || "unknown";
@@ -62,20 +66,24 @@ async function scrapeAll() {
               if (!row.hasAttribute("data-dt")) continue;
               const oddsBtns = row.querySelectorAll("td.table-main__odds button");
               const ttCell = row.querySelector("td.h-text-left");
+              const resultCell = row.querySelector("td.table-main__result");
+              if (resultCell && /\d+\s*:\s*\d+/.test(resultCell.textContent)) continue;
               
-              if (ttCell && oddsBtns.length >= 3) {
-                // Upcoming match with odds
+              if (ttCell) {
+                // Conserver aussi les rencontres sans cote : Sportrend est un
+                // fournisseur de calendrier, pas uniquement de prix.
                 const linkEl = ttCell.querySelector("a");
                 const teamsText = linkEl ? linkEl.textContent.trim() : "";
                 if (!teamsText.includes(" - ")) continue;
                 const parts = teamsText.split(" - ");
                 if (parts.length < 2) continue;
+                const odds = [...oddsBtns].map(button => button.textContent.trim());
                 upcoming.push({
                   home: parts[0].trim(), away: parts[1].trim(),
                   competition,
-                  odds1: oddsBtns[0].textContent.trim(),
-                  oddsX: oddsBtns[1].textContent.trim(),
-                  odds2: oddsBtns[2].textContent.trim(),
+                  odds1: odds[0] || "",
+                  oddsX: odds.length >= 3 ? odds[1] : "",
+                  odds2: odds.length >= 3 ? odds[2] : (odds[1] || ""),
                   startTime: row.getAttribute("data-dt") || ""
                 });
               }
@@ -89,7 +97,8 @@ async function scrapeAll() {
           let count = 0;
           for (const m of data.upcoming) {
             const metadata = normalizeMatchMetadata({ sport: sportName, competition: m.competition, startTime: m.startTime });
-            const id = "match:be_" + sportName.slice(0,4) + "_" + m.home.replace(/[^a-z0-9]/gi,"_").slice(0,15) + "_" + m.away.replace(/[^a-z0-9]/gi,"_").slice(0,15);
+            const scheduleKey = (metadata.date || "undated").replace(/-/g, "");
+            const id = "match:be_" + sportName.slice(0,4) + "_" + scheduleKey + "_" + m.home.replace(/[^a-z0-9]/gi,"_").slice(0,15) + "_" + m.away.replace(/[^a-z0-9]/gi,"_").slice(0,15);
             await r.hSet(id, "id", id.replace("match:",""));
             await r.hSet(id, "homeTeam", m.home);
             await r.hSet(id, "awayTeam", m.away);
@@ -107,7 +116,7 @@ async function scrapeAll() {
             await r.hSet(id, "source", "betexplorer");
             await r.hSet(id, "updatedAt", new Date().toISOString());
             await r.sAdd("matches:betexplorer", id);
-            await r.expire(id, 3600);
+            await r.expire(id, 21600);
             count++;
           }
           log(sportName + ": " + count + " upcoming");
