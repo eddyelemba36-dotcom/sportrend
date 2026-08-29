@@ -8,6 +8,7 @@ const fs = require("fs");
 const { createClient } = require("redis");
 const { WebSocketServer } = require("ws");
 const { Pool } = require("pg");
+const { canonicalSport } = require("./match-normalizer");
 
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 const PG_URL = process.env.PG_URL || "postgresql://odds_user:odds_pass@localhost:5432/odds_aggregator";
@@ -69,17 +70,7 @@ async function getMatch(id) {
 }
 
 function getSportFromMatch(m) {
-  const c = (m.competition||"").toLowerCase();
-  if (c.includes("nfl")) return "NFL";
-  if (c.includes("mlb")) return "MLB";
-  if (c.includes("nhl")) return "NHL";
-  if (c.includes("nba")) return "NBA";
-  if (c.includes("wnba")) return "WNBA";
-  if (c.includes("ufc")||c.includes("mma")) return "UFC";
-  if (c.includes("pga")||c.includes("golf")) return "PGA";
-  if (c.includes("atp")) return "ATP";
-  if (c.includes("wta")) return "WTA";
-  return "Football";
+  return canonicalSport(m.sport, m.competition) || "Unknown";
 }
 
 
@@ -405,23 +396,22 @@ const server = http.createServer(async (req, res) => {
     if (marketsMatch) {
       const m = await getMatch(marketsMatch[1]);
       if (!m) return json(res, 404, { success: false, error: "Match not found" });
-      // Le modèle Poisson actuel est calibré uniquement pour le football.
-      const oddsEngine = require("./odds-engine.js");
+      const sportsMarketEngine = require("./sports-market-engine.js");
       const sport = getSportFromMatch(m);
-      const canGenerate = sport === "Football";
-      const allMarkets = canGenerate ? oddsEngine.generateAllMarkets(
-        m.odds1, m.oddsX, m.odds2,
-        { home: { line: m.spread_home_line, odds: m.spread_home_odds }, away: { line: m.spread_away_line, odds: m.spread_away_odds } },
-        { over: { line: m.over_line, odds: m.over_odds }, under: { line: m.under_line, odds: m.under_odds } },
-        m.homeTeam, m.awayTeam
-      ) : {};
+      const generatedMarkets = sportsMarketEngine.generateMarketsForSport(sport, {
+        o1: m.odds1, oX: m.oddsX, o2: m.odds2,
+        spreadData: { home: { line: m.spread_home_line, odds: m.spread_home_odds }, away: { line: m.spread_away_line, odds: m.spread_away_odds } },
+        totalData: { over: { line: m.over_line, odds: m.over_odds }, under: { line: m.under_line, odds: m.under_odds } },
+        homeTeam: m.homeTeam, awayTeam: m.awayTeam
+      });
       return json(res, 200, { success: true, data: {
         moneyline: { home: m.odds1 || null, away: m.odds2 || null, draw: m.oddsX || null },
         spread: { home: { line: m.spread_home_line || null, odds: m.spread_home_odds || null }, away: { line: m.spread_away_line || null, odds: m.spread_away_odds || null } },
         total: { over: { line: m.over_line || null, odds: m.over_odds || null }, under: { line: m.under_line || null, odds: m.under_odds || null } },
-        all: allMarkets,
-        generated: canGenerate,
-        generationReason: canGenerate ? null : `Football Poisson model disabled for ${sport}`
+        all: generatedMarkets.markets,
+        generated: generatedMarkets.generated,
+        model: generatedMarkets.model,
+        generationReason: generatedMarkets.generated ? null : `No complete market data available for ${sport}`
       }});
     }
 
