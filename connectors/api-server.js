@@ -9,6 +9,7 @@ const { createClient } = require("redis");
 const { WebSocketServer } = require("ws");
 const { Pool } = require("pg");
 const { canonicalSport } = require("./match-normalizer");
+const { enrichLiveState } = require("./live-market-state");
 
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 const PG_URL = process.env.PG_URL || "postgresql://odds_user:odds_pass@localhost:5432/odds_aggregator";
@@ -74,65 +75,11 @@ function getSportFromMatch(m) {
 }
 
 
-// Live odds engine — adjusts odds based on match state (score + estimated minute)
+// Compatibilité API : enrichit l'état live sans inventer une horloge ou une cote.
 function computeLiveOdds(match) {
-  if (match.status !== "live") return match;
-  
-  var hScore = parseInt(match.homeScore) || 0;
-  var aScore = parseInt(match.awayScore) || 0;
-  
-  var base1 = parseFloat(match.odds1) || 2.0;
-  var baseX = parseFloat(match.oddsX) || 3.5;
-  var base2 = parseFloat(match.odds2) || 2.0;
-  
-  var updated = match.updatedAt ? new Date(match.updatedAt).getTime() : Date.now();
-  var elapsed = (Date.now() - updated) / 60000;
-  var minute = Math.min(Math.max(Math.round(elapsed * 1.5 + 15), 1), 90);
-  
-  var scoreDiff = hScore - aScore;
-  var totalGoals = hScore + aScore;
-  
-  var pHome = base1 > 0 ? 1 / base1 : 0.45;
-  var pDraw = baseX > 0 ? 1 / baseX : 0.25;
-  var pAway = base2 > 0 ? 1 / base2 : 0.30;
-  var total = pHome + pDraw + pAway;
-  if (total > 0) { pHome /= total; pDraw /= total; pAway /= total; }
-  
-  var shift = scoreDiff * 0.15;
-  var timeFactor = minute / 90;
-  var comebackFactor = 1 - timeFactor * 0.6;
-  
-  if (scoreDiff > 0) {
-    pHome = Math.min(0.95, pHome + shift * comebackFactor);
-    pAway = Math.max(0.01, pAway - shift * comebackFactor);
-    pDraw = Math.max(0.01, pDraw * (1 - 0.1 * Math.abs(scoreDiff)));
-  } else if (scoreDiff < 0) {
-    pAway = Math.min(0.95, pAway - shift * comebackFactor);
-    pHome = Math.max(0.01, pHome + shift * comebackFactor);
-    pDraw = Math.max(0.01, pDraw * (1 - 0.1 * Math.abs(scoreDiff)));
-  }
-  
-  if (scoreDiff === 0 && totalGoals > 0 && minute > 70) {
-    pDraw = pDraw * (1 - (minute - 70) / 100);
-  }
-  
-  var vig = 1.07;
-  var sum = pHome + pDraw + pAway;
-  if (sum > 0) {
-    pHome = (pHome / sum) / vig;
-    pDraw = (pDraw / sum) / vig;
-    pAway = (pAway / sum) / vig;
-  }
-  
-  var toOdds = function(p) { return p > 0 ? Math.round((1 / p) * 100) / 100 : null; };
-  
-  match.odds1 = toOdds(pHome);
-  match.oddsX = toOdds(pDraw);
-  match.odds2 = toOdds(pAway);
-  match.liveMinute = minute;
-  match.liveScoreAdjusted = true;
-  
-  return match;
+  return enrichLiveState(match, {
+    staleAfterMs: parseInt(process.env.LIVE_STALE_AFTER_MS || "90000", 10)
+  });
 }
 function json(res, status, data) {
   res.writeHead(status, {
@@ -398,7 +345,8 @@ const server = http.createServer(async (req, res) => {
       if (!m) return json(res, 404, { success: false, error: "Match not found" });
       const sportsMarketEngine = require("./sports-market-engine.js");
       const sport = getSportFromMatch(m);
-      const generatedMarkets = sportsMarketEngine.generateMarketsForSport(sport, {
+      const marketsSuspended = m.marketStatus === "suspended";
+      const generatedMarkets = marketsSuspended ? { generated: false, model: null, markets: {} } : sportsMarketEngine.generateMarketsForSport(sport, {
         o1: m.odds1, oX: m.oddsX, o2: m.odds2,
         spreadData: { home: { line: m.spread_home_line, odds: m.spread_home_odds }, away: { line: m.spread_away_line, odds: m.spread_away_odds } },
         totalData: { over: { line: m.over_line, odds: m.over_odds }, under: { line: m.under_line, odds: m.under_odds } },
@@ -411,7 +359,10 @@ const server = http.createServer(async (req, res) => {
         all: generatedMarkets.markets,
         generated: generatedMarkets.generated,
         model: generatedMarkets.model,
-        generationReason: generatedMarkets.generated ? null : `No complete market data available for ${sport}`
+        marketStatus: m.marketStatus,
+        suspensionReason: m.suspensionReason,
+        dataFreshness: m.dataFreshness,
+        generationReason: generatedMarkets.generated ? null : (m.suspensionReason || `No complete market data available for ${sport}`)
       }});
     }
 

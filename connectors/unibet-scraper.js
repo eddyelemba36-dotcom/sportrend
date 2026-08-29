@@ -42,6 +42,10 @@ async function storeMatch(r, m) {
   await r.hSet(key, "oddsX", String(m.oddsX || ""));
   await r.hSet(key, "odds2", String(m.odds2 || ""));
   await r.hSet(key, "status", m.status || "upcoming");
+  await r.hSet(key, "matchClock", m.matchClock || "");
+  await r.hSet(key, "period", m.period || "");
+  await r.hSet(key, "sequence", String(m.sequence || ""));
+  await r.hSet(key, "lastEventAt", m.lastEventAt || "");
   await r.hSet(key, "source", m.source || "");
   await r.hSet(key, "updatedAt", new Date().toISOString());
   await r.sAdd("matches:" + m.source, key);
@@ -135,6 +139,10 @@ async function scrapeUnibet() {
         startTime: val.startTime || val.start || val.date || "",
         odds1, oddsX, odds2,
         status: isLive ? "live" : "upcoming",
+        matchClock: sc.time || sc.clock || sc.minute || "",
+        period: sc.period || "",
+        sequence: sc.sequence || val.sequence || "",
+        lastEventAt: isLive ? new Date().toISOString() : "",
         source: "unibet",
       });
     }
