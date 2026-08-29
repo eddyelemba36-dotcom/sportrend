@@ -7,6 +7,7 @@ puppeteer.use(StealthPlugin());
 
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 const { createClient } = require("redis");
+const { normalizeMatchMetadata } = require("./match-normalizer");
 
 let redis = null;
 const fs = require("fs");
@@ -26,12 +27,17 @@ async function getRedis() {
 
 async function storeMatch(r, m) {
   const key = "match:" + m.id;
+  const metadata = normalizeMatchMetadata(m);
   await r.hSet(key, "id", m.id);
   await r.hSet(key, "homeTeam", m.homeTeam || "");
   await r.hSet(key, "awayTeam", m.awayTeam || "");
   await r.hSet(key, "homeScore", String(m.homeScore || ""));
   await r.hSet(key, "awayScore", String(m.awayScore || ""));
   await r.hSet(key, "competition", m.competition || "");
+  await r.hSet(key, "sport", metadata.sport);
+  await r.hSet(key, "country", metadata.country);
+  await r.hSet(key, "leagueId", metadata.leagueId);
+  await r.hSet(key, "startTime", metadata.startTime);
   await r.hSet(key, "odds1", String(m.odds1 || ""));
   await r.hSet(key, "oddsX", String(m.oddsX || ""));
   await r.hSet(key, "odds2", String(m.odds2 || ""));
@@ -125,6 +131,8 @@ async function scrapeUnibet() {
         id, homeTeam, awayTeam,
         homeScore, awayScore,
         competition: pdesc,
+        sport: val.sport || val.sportName || "",
+        startTime: val.startTime || val.start || val.date || "",
         odds1, oddsX, odds2,
         status: isLive ? "live" : "upcoming",
         source: "unibet",

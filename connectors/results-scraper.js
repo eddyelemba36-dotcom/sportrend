@@ -7,6 +7,7 @@ const { createClient } = require("redis");
 const puppeteer = require("puppeteer-extra").default;
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const https = require("https");
+const { normalizeMatchMetadata } = require("./match-normalizer");
 puppeteer.use(StealthPlugin());
 
 let redis = null;
@@ -65,6 +66,11 @@ async function scrapeESPNResults() {
         if (!home || !away) continue;
 
         const id = "match:result_espn_" + event.id;
+        const metadata = normalizeMatchMetadata({
+          sport: ep.sport,
+          competition: ep.sport + (comp.altGameNote ? " - " + comp.altGameNote : ""),
+          startTime: event.date || comp.date || ""
+        });
         const homeName = (home.team ? home.team.displayName : "") || (home.athlete ? home.athlete.displayName : "");
         const awayName = (away.team ? away.team.displayName : "") || (away.athlete ? away.athlete.displayName : "");
         
@@ -75,6 +81,9 @@ async function scrapeESPNResults() {
         await r.hSet(id, "awayScore", away.score || "0");
         await r.hSet(id, "competition", ep.sport + (comp.altGameNote ? " - " + comp.altGameNote : ""));
         await r.hSet(id, "sport", ep.sport);
+        await r.hSet(id, "country", metadata.country);
+        await r.hSet(id, "leagueId", metadata.leagueId);
+        await r.hSet(id, "startTime", metadata.startTime);
         await r.hSet(id, "status", "finished");
         await r.hSet(id, "source", "results");
         await r.hSet(id, "updatedAt", new Date().toISOString());
@@ -127,7 +136,8 @@ function extractBetExplorerResults() {
         away: parts[1].replace(/\*\*/g, "").trim(),
         homeScore: scores ? scores[1] : "",
         awayScore: scores ? scores[2] : "",
-        competition
+        competition,
+        startTime: row.getAttribute("data-dt") || ""
       });
     }
   }
@@ -158,6 +168,7 @@ async function scrapeBetExplorerResults() {
 
         if (results.length > 0) {
           for (const m of results) {
+            const metadata = normalizeMatchMetadata({ sport: sportCfg.name, competition: m.competition, startTime: m.startTime });
             const id = "match:result_be_" + sportCfg.name.slice(0,4) + "_" + m.home.replace(/[^a-z0-9]/gi,"_").slice(0,15) + "_" + m.away.replace(/[^a-z0-9]/gi,"_").slice(0,15);
             await r.hSet(id, "id", id.replace("match:",""));
             await r.hSet(id, "homeTeam", m.home);
@@ -166,6 +177,9 @@ async function scrapeBetExplorerResults() {
             await r.hSet(id, "awayScore", m.awayScore);
             await r.hSet(id, "competition", m.competition.replace(/\s*1\s*X\s*2$/,"").trim() || sportCfg.name);
             await r.hSet(id, "sport", sportCfg.name);
+            await r.hSet(id, "country", metadata.country);
+            await r.hSet(id, "leagueId", metadata.leagueId);
+            await r.hSet(id, "startTime", metadata.startTime);
             await r.hSet(id, "status", "finished");
             await r.hSet(id, "source", "results");
             await r.hSet(id, "updatedAt", new Date().toISOString());

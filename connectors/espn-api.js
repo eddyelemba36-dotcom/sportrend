@@ -5,6 +5,7 @@
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const { createClient } = require('redis');
 const https = require('https');
+const { normalizeMatchMetadata } = require('./match-normalizer');
 
 let redis = null;
 function log(m) { console.log('['+new Date().toLocaleTimeString('fr-FR',{hour12:false})+'] [ESPN] '+m); }
@@ -100,6 +101,11 @@ async function scrapeDate(r, slug, label, dateStr) {
     const isLive = state==='in';
 
     const compName = label + (comp.altGameNote?' - '+comp.altGameNote:'');
+    const metadata = normalizeMatchMetadata({
+      sport: slug.split('/')[0], competition: compName,
+      leagueId: event.league?.slug || data.leagues?.[0]?.slug || '',
+      startTime: event.date || comp.date || ''
+    });
     const id = 'match:esnp_' + slug.replace(/[\/\.]/g,'_') + '_' + event.id;
 
     await r.hSet(id, 'id', id.replace('match:',''));
@@ -108,6 +114,10 @@ async function scrapeDate(r, slug, label, dateStr) {
     await r.hSet(id, 'homeScore', isComplete||isLive?(home.score||'0'):'');
     await r.hSet(id, 'awayScore', isComplete||isLive?(away.score||'0'):'');
     await r.hSet(id, 'competition', compName);
+    await r.hSet(id, 'sport', metadata.sport);
+    await r.hSet(id, 'country', metadata.country);
+    await r.hSet(id, 'leagueId', metadata.leagueId);
+    await r.hSet(id, 'startTime', metadata.startTime);
     await r.hSet(id, 'status', isLive?'live':(isComplete?'finished':'upcoming'));
     await r.hSet(id, 'source', 'espn');
     await r.hSet(id, 'updatedAt', new Date().toISOString());

@@ -5,6 +5,7 @@ const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 const { createClient } = require("redis");
 const puppeteer = require("puppeteer-extra").default;
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const { normalizeMatchMetadata } = require("./match-normalizer");
 puppeteer.use(StealthPlugin());
 
 let redis = null;
@@ -46,15 +47,19 @@ async function scrapeAll() {
 
         const data = await page.evaluate(() => {
           const upcoming = [];
-          const results = [];
           const tables = document.querySelectorAll("table.table-main");
           for (const table of tables) {
-            const tourneyEl = table.querySelector("tr.js-tournament .table-main__tournament");
-            let competition = tourneyEl ? tourneyEl.textContent.trim() : "";
+            let competition = "";
             competition = competition.replace(/\s*1\s*X\s*2$/,"").trim();
             
-            const rows = table.querySelectorAll("tr[data-dt]");
+            const rows = table.querySelectorAll("tr");
             for (const row of rows) {
+              const tournament = row.querySelector(".table-main__tournament");
+              if (tournament) {
+                competition = tournament.textContent.replace(/\s*1\s*X\s*2$/, "").trim();
+                continue;
+              }
+              if (!row.hasAttribute("data-dt")) continue;
               const oddsBtns = row.querySelectorAll("td.table-main__odds button");
               const ttCell = row.querySelector("td.h-text-left");
               
@@ -71,6 +76,7 @@ async function scrapeAll() {
                   odds1: oddsBtns[0].textContent.trim(),
                   oddsX: oddsBtns[1].textContent.trim(),
                   odds2: oddsBtns[2].textContent.trim(),
+                  startTime: row.getAttribute("data-dt") || ""
                 });
               }
             }
@@ -82,6 +88,7 @@ async function scrapeAll() {
         if (data.upcoming.length > 0) {
           let count = 0;
           for (const m of data.upcoming) {
+            const metadata = normalizeMatchMetadata({ sport: sportName, competition: m.competition, startTime: m.startTime });
             const id = "match:be_" + sportName.slice(0,4) + "_" + m.home.replace(/[^a-z0-9]/gi,"_").slice(0,15) + "_" + m.away.replace(/[^a-z0-9]/gi,"_").slice(0,15);
             await r.hSet(id, "id", id.replace("match:",""));
             await r.hSet(id, "homeTeam", m.home);
@@ -90,6 +97,10 @@ async function scrapeAll() {
             await r.hSet(id, "oddsX", m.oddsX);
             await r.hSet(id, "odds2", m.odds2);
             await r.hSet(id, "competition", m.competition || sportName);
+            await r.hSet(id, "sport", metadata.sport);
+            await r.hSet(id, "country", metadata.country);
+            await r.hSet(id, "leagueId", metadata.leagueId);
+            await r.hSet(id, "startTime", metadata.startTime);
             await r.hSet(id, "status", "upcoming");
             await r.hSet(id, "source", "betexplorer");
             await r.hSet(id, "updatedAt", new Date().toISOString());
