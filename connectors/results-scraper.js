@@ -8,6 +8,7 @@ const puppeteer = require("puppeteer-extra").default;
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const https = require("https");
 const { normalizeMatchMetadata } = require("./match-normalizer");
+const { registerResultCandidate } = require("./result-consensus");
 puppeteer.use(StealthPlugin());
 
 let redis = null;
@@ -86,9 +87,15 @@ async function scrapeESPNResults() {
         await r.hSet(id, "startTime", metadata.startTime);
         await r.hSet(id, "status", "finished");
         await r.hSet(id, "source", "results");
+        await r.hSet(id, "resultProvider", "espn");
         await r.hSet(id, "updatedAt", new Date().toISOString());
         await r.sAdd("matches:results", id);
         await r.expire(id, 7200);
+        await registerResultCandidate(r, {
+          provider: "espn", matchKey: id, sport: metadata.sport,
+          homeTeam: homeName, awayTeam: awayName, startTime: metadata.startTime,
+          homeScore: Number.parseInt(home.score, 10), awayScore: Number.parseInt(away.score, 10)
+        });
         total++;
       }
     } catch(e) {}
@@ -182,9 +189,15 @@ async function scrapeBetExplorerResults() {
             await r.hSet(id, "startTime", metadata.startTime);
             await r.hSet(id, "status", "finished");
             await r.hSet(id, "source", "results");
+            await r.hSet(id, "resultProvider", "betexplorer");
             await r.hSet(id, "updatedAt", new Date().toISOString());
             await r.sAdd("matches:results", id);
             await r.expire(id, 7200);
+            await registerResultCandidate(r, {
+              provider: "betexplorer", matchKey: id, sport: metadata.sport,
+              homeTeam: m.home, awayTeam: m.away, startTime: metadata.startTime,
+              homeScore: Number.parseInt(m.homeScore, 10), awayScore: Number.parseInt(m.awayScore, 10)
+            });
             total++;
           }
           log(sportCfg.name + " results: " + results.length);

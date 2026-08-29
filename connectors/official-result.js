@@ -18,6 +18,8 @@ function jsonArray(value) {
 function buildOfficialResult(match) {
   const finished = match.status === "finished";
   const confirmed = finished && match.resultStatus === "confirmed" && Boolean(match.resultConfirmedAt);
+  const resultStatus = confirmed ? "confirmed"
+    : (finished && match.resultStatus === "conflict" ? "conflict" : (finished ? "provisional" : "pending"));
   return {
     matchId: match.id,
     sport: match.sport || "",
@@ -25,7 +27,7 @@ function buildOfficialResult(match) {
     homeTeam: match.homeTeam || "",
     awayTeam: match.awayTeam || "",
     status: match.status || "unknown",
-    resultStatus: confirmed ? "confirmed" : (finished ? "provisional" : "pending"),
+    resultStatus,
     regulation: {
       home: numberOrNull(match.regulationHomeScore ?? match.homeScore),
       away: numberOrNull(match.regulationAwayScore ?? match.awayScore)
