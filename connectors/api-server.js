@@ -400,11 +400,18 @@ const server = http.createServer(async (req, res) => {
       const m = await getMatch(settlementMatch[1]);
       if (!m) return json(res, 404, { success: false, error: "Match not found" });
       const result = buildOfficialResult(m);
-      const supportedMarkets = ["1x2", "double_chance", "bts", "exact_score", "draw_no_bet", "over_under"];
+      const supportedMarkets = [
+        "1x2", "double_chance", "bts", "exact_score", "draw_no_bet", "over_under",
+        "half_time_1x2", "half_time_total", "total_corners", "home_corners", "away_corners",
+        "yellow_cards", "red_cards", "anytime_scorer"
+      ];
       if (!params.market || !params.selection) {
         return json(res, 200, { success: true, data: { resultStatus: result.resultStatus, supportedMarkets } });
       }
-      const settlement = settleSelection(result, { market: params.market, selection: params.selection, line: params.line });
+      const settlement = settleSelection(result, {
+        market: params.market, selection: params.selection, line: params.line,
+        playerId: params.playerId, player: params.player
+      });
       return json(res, 200, { success: true, data: {
         matchId: m.id, market: params.market, selection: params.selection,
         line: params.line || null, ...settlement, resultRevision: result.revision

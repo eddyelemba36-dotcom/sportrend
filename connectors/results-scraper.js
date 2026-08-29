@@ -90,6 +90,7 @@ async function scrapeESPNResults() {
         await r.hSet(id, "status", "finished");
         await r.hSet(id, "source", "results");
         await r.hSet(id, "resultProvider", "espn");
+        await r.hSet(id, "detailsStatus", "provisional");
         await r.hSet(id, "events", JSON.stringify(details.events));
         await r.hSet(id, "statistics", JSON.stringify(details.statistics));
         await r.hSet(id, "halfTimeHomeScore", String(details.halfTimeHomeScore ?? ""));

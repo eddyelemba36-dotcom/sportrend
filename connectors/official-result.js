@@ -28,6 +28,7 @@ function buildOfficialResult(match) {
     awayTeam: match.awayTeam || "",
     status: match.status || "unknown",
     resultStatus,
+    detailsStatus: match.detailsStatus === "confirmed" && match.detailsConfirmedAt ? "confirmed" : (finished ? "provisional" : "pending"),
     regulation: {
       home: numberOrNull(match.regulationHomeScore ?? match.homeScore),
       away: numberOrNull(match.regulationAwayScore ?? match.awayScore)
@@ -39,6 +40,7 @@ function buildOfficialResult(match) {
     events: jsonArray(match.events),
     statistics: match.statistics ? (() => { try { return JSON.parse(match.statistics); } catch { return {}; } })() : {},
     confirmedAt: confirmed ? match.resultConfirmedAt : null,
+    detailsConfirmedAt: match.detailsStatus === "confirmed" ? (match.detailsConfirmedAt || null) : null,
     sources: jsonArray(match.resultSources),
     revision: numberOrNull(match.resultRevision) || 0
   };
