@@ -10,6 +10,8 @@ const { WebSocketServer } = require("ws");
 const { Pool } = require("pg");
 const { canonicalSport } = require("./match-normalizer");
 const { enrichLiveState } = require("./live-market-state");
+const { buildOfficialResult } = require("./official-result");
+const { settleSelection } = require("./settlement-engine");
 
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 const PG_URL = process.env.PG_URL || "postgresql://odds_user:odds_pass@localhost:5432/odds_aggregator";
@@ -363,6 +365,31 @@ const server = http.createServer(async (req, res) => {
         suspensionReason: m.suspensionReason,
         dataFreshness: m.dataFreshness,
         generationReason: generatedMarkets.generated ? null : (m.suspensionReason || `No complete market data available for ${sport}`)
+      }});
+    }
+
+    // /api/v1/matches/:id/result
+    const resultMatch = p.match(/^\/matches\/([^\/]+)\/result$/);
+    if (resultMatch) {
+      const m = await getMatch(resultMatch[1]);
+      if (!m) return json(res, 404, { success: false, error: "Match not found" });
+      return json(res, 200, { success: true, data: buildOfficialResult(m) });
+    }
+
+    // /api/v1/matches/:id/settlements?market=1x2&selection=1
+    const settlementMatch = p.match(/^\/matches\/([^\/]+)\/settlements$/);
+    if (settlementMatch) {
+      const m = await getMatch(settlementMatch[1]);
+      if (!m) return json(res, 404, { success: false, error: "Match not found" });
+      const result = buildOfficialResult(m);
+      const supportedMarkets = ["1x2", "double_chance", "bts", "exact_score", "draw_no_bet", "over_under"];
+      if (!params.market || !params.selection) {
+        return json(res, 200, { success: true, data: { resultStatus: result.resultStatus, supportedMarkets } });
+      }
+      const settlement = settleSelection(result, { market: params.market, selection: params.selection, line: params.line });
+      return json(res, 200, { success: true, data: {
+        matchId: m.id, market: params.market, selection: params.selection,
+        line: params.line || null, ...settlement, resultRevision: result.revision
       }});
     }
 
