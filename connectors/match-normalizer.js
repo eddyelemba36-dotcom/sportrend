@@ -44,7 +44,11 @@ function normalizeStartTime(value) {
   const commaDate = String(value).trim().match(/^(\d{1,2}),(\d{1,2}),(\d{4}),(\d{1,2}),(\d{1,2})$/);
   if (commaDate) {
     const [, day, month, year, hour, minute] = commaDate;
-    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:00.000Z`;
+    // BetExplorer encode data-dt dans son heure de référence CET (UTC+1),
+    // même pendant l'heure d'été européenne. Le suffixer directement par Z
+    // décale donc tous les coups d'envoi d'une heure vers le futur.
+    const utc = Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour) - 1, Number(minute));
+    return new Date(utc).toISOString();
   }
   const numeric = Number(value);
   const date = Number.isFinite(numeric)

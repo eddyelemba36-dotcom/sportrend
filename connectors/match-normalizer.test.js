@@ -21,7 +21,11 @@ test("convertit les timestamps secondes et conserve les valeurs inconnues vides"
 
 test("convertit le format calendrier BetExplorer", () => {
   const metadata = normalizeMatchMetadata({ competition: "France: Ligue 1", startTime: "29,08,2026,20,45" });
-  assert.equal(metadata.startTime, "2026-08-29T20:45:00.000Z");
+  assert.equal(metadata.startTime, "2026-08-29T19:45:00.000Z");
   assert.equal(metadata.date, "2026-08-29");
-  assert.equal(metadata.time, "20:45");
+  assert.equal(metadata.time, "19:45");
+});
+
+test("ne conserve pas une heure BetExplorer déjà commencée comme future", () => {
+  assert.equal(normalizeStartTime("30,08,2026,18,15"), "2026-08-30T17:15:00.000Z");
 });
