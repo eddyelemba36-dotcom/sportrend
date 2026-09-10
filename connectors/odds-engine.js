@@ -509,6 +509,19 @@ function generateAllMarkets(o1, oX, o2, spreadData, totalData, homeTeam, awayTea
     const probability = (first === "GG" ? htBtsProb : 1 - htBtsProb) * (second === "GG" ? shBtsProb : 1 - shBtsProb);
     return { label: choice, value: choice, odds: price(probability, 0.12) };
   }) };
+  const bestHalfEntries = (side) => {
+    const index = side === "home" ? 0 : 1;
+    const first = Array.from({ length: 5 }, (_, goals) => periodProb(htScores, (h, a) => [h, a][index] === goals));
+    const second = Array.from({ length: 5 }, (_, goals) => periodProb(shScores, (h, a) => [h, a][index] === goals));
+    let firstProb = 0, secondProb = 0, equalProb = 0;
+    for (let a = 0; a < first.length; a++) for (let b = 0; b < second.length; b++) {
+      const probability = first[a] * second[b];
+      if (a > b) firstProb += probability; else if (a < b) secondProb += probability; else equalProb += probability;
+    }
+    return [{ label: "1ère mi-temps", value: "1st", odds: price(firstProb, 0.1) }, { label: "2ème mi-temps", value: "2nd", odds: price(secondProb, 0.1) }, { label: "Égalité", value: "Eq", odds: price(equalProb, 0.1) }];
+  };
+  markets.home_best_half = { name: `🕐 ${homeTeam} meilleure mi-temps`, entries: bestHalfEntries("home") };
+  markets.away_best_half = { name: `🕐 ${awayTeam} meilleure mi-temps`, entries: bestHalfEntries("away") };
   for (const [key, name] of Object.entries({ ht_corner_total: "1ère mi-temps Total corners Moins/Plus", ht_corner_1x2: "1ère mi-temps Corner 1X2", ht_corner_handicap: "1ère mi-temps Corner handicap", ht_corner_oe: "1ère mi-temps Corners impair/pair", ht_first_corner: "1ère mi-temps Premier corner", ht_last_corner: "1ère mi-temps Dernier corner", ht_corner_cumulative: "1ère mi-temps Total de corners (cumulés)" })) {
     markets[key] = { name: `🔒 ${name}`, isLocked: true, lockReason: "Statistiques corners MT indisponibles", entries: [] };
   }
@@ -834,7 +847,7 @@ function generateAllMarkets(o1, oX, o2, spreadData, totalData, homeTeam, awayTea
   }
   // En live : retirer les marchés de période (MT / 2e MT) — déjà joués ou non fiables
   if (hidePeriodMarkets) {
-    for (const k of ["ht12","hml","htbts","htou","httotals","htdc_btts","ht1x2_total","ht1x2_btts","ht_exact","2ht12","shtotals","shdc_btts","sh1x2_total","halves_btts","htft","bothhalves","winboth","htscore","half1goal","half2goal","bothhalfbts","ht_corner_total","ht_corner_1x2","ht_corner_handicap","ht_corner_oe","ht_first_corner","ht_last_corner","ht_corner_cumulative"]) {
+    for (const k of ["ht12","hml","htbts","htou","httotals","htdc_btts","ht1x2_total","ht1x2_btts","ht_exact","2ht12","shtotals","shdc_btts","sh1x2_total","halves_btts","home_best_half","away_best_half","htft","bothhalves","winboth","htscore","half1goal","half2goal","bothhalfbts","ht_corner_total","ht_corner_1x2","ht_corner_handicap","ht_corner_oe","ht_first_corner","ht_last_corner","ht_corner_cumulative"]) {
       delete markets[k];
     }
   }
