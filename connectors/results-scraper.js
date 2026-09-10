@@ -55,9 +55,19 @@ async function scrapeESPNResults() {
   for (const ep of endpoints) {
     try {
       // Use ?dates= parameter to get past dates
-      const data = await fetchJSON(`https://site.api.espn.com/apis/site/v2/sports/${ep.slug}/scoreboard`);
-      const events = data.events || [];
+      const dates = Array.from({ length: 4 }, (_, offset) => {
+        const d = new Date(Date.now() - offset * 86400000);
+        return d.toISOString().slice(0, 10).replace(/-/g, "");
+      });
+      const events = [];
+      for (const date of dates) {
+        const data = await fetchJSON(`https://site.api.espn.com/apis/site/v2/sports/${ep.slug}/scoreboard?dates=${date}&limit=1000`);
+        events.push(...(data.events || []));
+      }
+      const seenEvents = new Set();
       for (const event of events) {
+        if (!event || seenEvents.has(event.id)) continue;
+        seenEvents.add(event.id);
         const comp = event.competitions ? event.competitions[0] : null;
         if (!comp || !comp.competitors || comp.competitors.length < 2) continue;
         const state = (comp.status||{}).type||{};
@@ -103,10 +113,16 @@ async function scrapeESPNResults() {
         await r.hSet(id, "penaltyAwayScore", String(details.penaltyAwayScore ?? ""));
         await r.hSet(id, "updatedAt", new Date().toISOString());
         await r.sAdd("matches:results", id);
-        await r.expire(id, 7200);
+        await r.expire(id, RESULT_TTL_SECONDS);
         await registerResultCandidate(r, {
           provider: "espn", matchKey: id, sport: metadata.sport,
           homeTeam: homeName, awayTeam: awayName, startTime: metadata.startTime,
+          homeScore: details.regulationHomeScore ?? Number.parseInt(home.score, 10),
+          awayScore: details.regulationAwayScore ?? Number.parseInt(away.score, 10)
+        });
+        await reconcileOriginalFixture(r, {
+          provider: "espn", resultStatus: "provisional", home: homeName, away: awayName,
+          startTime: metadata.startTime,
           homeScore: details.regulationHomeScore ?? Number.parseInt(home.score, 10),
           awayScore: details.regulationAwayScore ?? Number.parseInt(away.score, 10)
         });
@@ -152,6 +168,7 @@ function extractBetExplorerResults() {
       if (parts.length < 2) continue;
 
       const scores = resCell.textContent.trim().match(/(\d+)\s*:\s*(\d+)/);
+      if (!scores) continue;
       results.push({
         home: parts[0].replace(/\*\*/g, "").trim(),
         away: parts[1].replace(/\*\*/g, "").trim(),
@@ -163,6 +180,43 @@ function extractBetExplorerResults() {
     }
   }
   return results;
+}
+
+const RESULT_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+function compactName(value) {
+  return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/\b(fc|afc|cf|sc|fk|ac)\b/g, "")
+    .replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+async function reconcileOriginalFixture(r, result) {
+  const targetHome = compactName(result.home);
+  const targetAway = compactName(result.away);
+  const targetDate = String(result.startTime || "").slice(0, 10);
+  if (!targetHome || !targetAway || !targetDate) return 0;
+  let reconciled = 0;
+  const keys = await r.sMembers("matches:betexplorer");
+  for (const key of keys) {
+    if (!(await r.exists(key))) { await r.sRem("matches:betexplorer", key); continue; }
+    const fixture = await r.hGetAll(key);
+    if (String(fixture.startTime || "").slice(0, 10) !== targetDate) continue;
+    if (compactName(fixture.homeTeam) !== targetHome || compactName(fixture.awayTeam) !== targetAway) continue;
+    await r.hSet(key, {
+      status: "finished",
+      homeScore: String(result.homeScore),
+      awayScore: String(result.awayScore),
+      regulationHomeScore: String(result.homeScore),
+      regulationAwayScore: String(result.awayScore),
+      resultProvider: result.provider || "betexplorer",
+      resultStatus: result.resultStatus || "provisional",
+      updatedAt: new Date().toISOString()
+    });
+    await r.sAdd("matches:results", key);
+    await r.expire(key, RESULT_TTL_SECONDS);
+    reconciled++;
+  }
+  return reconciled;
 }
 
 async function scrapeBetExplorerResults() {
@@ -208,10 +262,15 @@ async function scrapeBetExplorerResults() {
             await r.hSet(id, "resultProvider", "betexplorer");
             await r.hSet(id, "updatedAt", new Date().toISOString());
             await r.sAdd("matches:results", id);
-            await r.expire(id, 7200);
+            await r.expire(id, RESULT_TTL_SECONDS);
             await registerResultCandidate(r, {
               provider: "betexplorer", matchKey: id, sport: metadata.sport,
               homeTeam: m.home, awayTeam: m.away, startTime: metadata.startTime,
+              homeScore: Number.parseInt(m.homeScore, 10), awayScore: Number.parseInt(m.awayScore, 10)
+            });
+            await reconcileOriginalFixture(r, {
+              provider: "betexplorer", resultStatus: "provisional", home: m.home, away: m.away,
+              startTime: metadata.startTime,
               homeScore: Number.parseInt(m.homeScore, 10), awayScore: Number.parseInt(m.awayScore, 10)
             });
             total++;
@@ -247,7 +306,7 @@ async function scrapeAllResults() {
     if (!(await r.exists(key))) await r.sRem("matches:results", key);
   }
 
-  const total = await r.scard("matches:results");
+  const total = await r.sCard("matches:results");
   log("Total results stored: " + total + " (new: " + (be + espn) + ")");
   return total;
 }

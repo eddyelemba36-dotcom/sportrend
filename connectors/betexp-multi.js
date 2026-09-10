@@ -81,6 +81,7 @@ async function scrapeAll() {
                 upcoming.push({
                   home: parts[0].trim(), away: parts[1].trim(),
                   competition,
+                  sourceUrl: linkEl && linkEl.href ? linkEl.href : "",
                   odds1: odds[0] || "",
                   oddsX: odds.length >= 3 ? odds[1] : "",
                   odds2: odds.length >= 3 ? odds[2] : (odds[1] || ""),
@@ -114,9 +115,10 @@ async function scrapeAll() {
             await r.hSet(id, "time", metadata.time);
             await r.hSet(id, "status", "upcoming");
             await r.hSet(id, "source", "betexplorer");
+            await r.hSet(id, "sourceUrl", m.sourceUrl || "");
             await r.hSet(id, "updatedAt", new Date().toISOString());
             await r.sAdd("matches:betexplorer", id);
-            await r.expire(id, 21600);
+            await r.expire(id, 7 * 24 * 60 * 60);
             count++;
           }
           log(sportName + ": " + count + " upcoming");
