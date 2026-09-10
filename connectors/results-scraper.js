@@ -124,7 +124,9 @@ async function scrapeESPNResults() {
           provider: "espn", resultStatus: "provisional", home: homeName, away: awayName,
           startTime: metadata.startTime,
           homeScore: details.regulationHomeScore ?? Number.parseInt(home.score, 10),
-          awayScore: details.regulationAwayScore ?? Number.parseInt(away.score, 10)
+          awayScore: details.regulationAwayScore ?? Number.parseInt(away.score, 10),
+          halfTimeHomeScore: details.halfTimeHomeScore,
+          halfTimeAwayScore: details.halfTimeAwayScore
         });
         total++;
       }
@@ -169,11 +171,14 @@ function extractBetExplorerResults() {
 
       const scores = resCell.textContent.trim().match(/(\d+)\s*:\s*(\d+)/);
       if (!scores) continue;
+      const periods = row.textContent.match(/\(\s*(\d+)\s*:\s*(\d+)\s*,/);
       results.push({
         home: parts[0].replace(/\*\*/g, "").trim(),
         away: parts[1].replace(/\*\*/g, "").trim(),
         homeScore: scores ? scores[1] : "",
         awayScore: scores ? scores[2] : "",
+        halfTimeHomeScore: periods ? periods[1] : "",
+        halfTimeAwayScore: periods ? periods[2] : "",
         competition,
         startTime: row.getAttribute("data-dt") || ""
       });
@@ -212,6 +217,10 @@ async function reconcileOriginalFixture(r, result) {
       resultStatus: result.resultStatus || "provisional",
       updatedAt: new Date().toISOString()
     });
+    if (Number.isInteger(result.halfTimeHomeScore) && Number.isInteger(result.halfTimeAwayScore)) {
+      await r.hSet(key, "halfTimeHomeScore", String(result.halfTimeHomeScore));
+      await r.hSet(key, "halfTimeAwayScore", String(result.halfTimeAwayScore));
+    }
     await r.sAdd("matches:results", key);
     await r.expire(key, RESULT_TTL_SECONDS);
     reconciled++;
@@ -250,6 +259,10 @@ async function scrapeBetExplorerResults() {
             await r.hSet(id, "awayTeam", m.away);
             await r.hSet(id, "homeScore", m.homeScore);
             await r.hSet(id, "awayScore", m.awayScore);
+            if (sportCfg.name === "Football" && m.halfTimeHomeScore !== "" && m.halfTimeAwayScore !== "") {
+              await r.hSet(id, "halfTimeHomeScore", m.halfTimeHomeScore);
+              await r.hSet(id, "halfTimeAwayScore", m.halfTimeAwayScore);
+            }
             await r.hSet(id, "competition", m.competition.replace(/\s*1\s*X\s*2$/,"").trim() || sportCfg.name);
             await r.hSet(id, "sport", sportCfg.name);
             await r.hSet(id, "country", metadata.country);
@@ -271,7 +284,9 @@ async function scrapeBetExplorerResults() {
             await reconcileOriginalFixture(r, {
               provider: "betexplorer", resultStatus: "provisional", home: m.home, away: m.away,
               startTime: metadata.startTime,
-              homeScore: Number.parseInt(m.homeScore, 10), awayScore: Number.parseInt(m.awayScore, 10)
+              homeScore: Number.parseInt(m.homeScore, 10), awayScore: Number.parseInt(m.awayScore, 10),
+              halfTimeHomeScore: sportCfg.name === "Football" ? Number.parseInt(m.halfTimeHomeScore, 10) : null,
+              halfTimeAwayScore: sportCfg.name === "Football" ? Number.parseInt(m.halfTimeAwayScore, 10) : null
             });
             total++;
           }
